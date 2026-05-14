@@ -939,21 +939,32 @@ function scoreCriteria(p){
 
   // ---- Game-results boosts/penalties ----
   if (perf) {
+    const apps = perf.appearances || 0;
+    const wins = perf.appearances_in_wins || 0;
+
     // Boost for leading scoring in actual team wins
     if (perf.team_w_led_pts >= 3) impact = Math.min(impact + 15, 100);
     else if (perf.team_w_led_pts >= 1) impact = Math.min(impact + 8, 100);
 
-    // Versatility — led in many different categories
+    // Versatility — led in many different categories (toned down so it can't carry 2 tiers)
     const distinctCats = ['pts','reb','ast','stl','blk','3pm'].filter(k => perf['led_'+k] > 0).length;
     if (distinctCats >= 5) {
-      motor = Math.min(motor + 15, 100);
-      impact = Math.min(impact + 10, 100);
-    } else if (distinctCats >= 4) {
-      motor = Math.min(motor + 8, 100);
+      motor = Math.min(motor + 10, 100);
       impact = Math.min(impact + 5, 100);
+    } else if (distinctCats >= 4) {
+      motor = Math.min(motor + 5, 100);
     }
 
-    // Penalty — high scoring volume but all in losses
+    // Penalty — appeared as a leader repeatedly but team never won
+    if (apps >= 4 && wins === 0) {
+      impact = Math.max(impact - 10, 0);
+      motor = Math.max(motor - 5, 0);
+    }
+
+    // Reward — leader appearances correlating with team wins
+    if (apps >= 3 && wins >= 3) impact = Math.min(impact + 5, 100);
+
+    // Penalty — high scoring volume but all in losses (e.g. Hammad on 0-8 Purple)
     if (perf.led_pts >= 3 && perf.team_w_led_pts === 0) {
       impact = Math.max(impact - 12, 0);
       shotsel = Math.max(shotsel - 10, 0);
@@ -987,6 +998,7 @@ function compositeScore(p){
 function buildReason(p, sugTier, criteria){
   const perf = PERF_DATA[p.name];
   const parts = [];
+  const isTraded = /\(traded\)/i.test(p.style || '');
 
   // Lead with the tier movement summary
   if (p.isCaptain) {
@@ -996,10 +1008,17 @@ function buildReason(p, sugTier, criteria){
   else if (sugTier > p.tier) parts.push(`Suggested demotion from T${p.tier} to T${sugTier}.`);
   else parts.push(`Hold at T${p.tier}.`);
 
+  // Traded — flag it
+  if (isTraded) {
+    parts.push(`Marked as traded in scouting notes — holding current tier pending confirmation of roster status.`);
+  }
+
   // Game-results narrative — the strongest signal
   if (perf) {
     const ledPts = perf.led_pts;
     const ledPtsW = perf.team_w_led_pts;
+    const apps = perf.appearances || 0;
+    const wins = perf.appearances_in_wins || 0;
     const distinctCats = ['pts','reb','ast','stl','blk','3pm'].filter(k => perf['led_'+k] > 0).length;
 
     if (ledPts >= 4 && ledPtsW >= ledPts * 0.7) {
@@ -1008,14 +1027,18 @@ function buildReason(p, sugTier, criteria){
       parts.push(`Led team in scoring ${ledPts} times but only ${ledPtsW} in a win — volume isn't moving the needle.`);
     } else if (ledPts >= 2 && ledPtsW >= 2) {
       parts.push(`Carried ${p.team} in ${ledPtsW} of ${ledPts} scoring leads — a reliable closer.`);
-    } else if (ledPts === 0 && perf.appearances >= 3) {
-      parts.push(`Featured as a category leader ${perf.appearances} times without ever leading the team in scoring — fills a complementary role.`);
+    } else if (ledPts === 0 && apps >= 3 && wins >= 3) {
+      parts.push(`Featured as a category leader ${apps} times — ${wins} of those games were wins — a strong glue/role contributor.`);
+    } else if (ledPts === 0 && apps >= 4 && wins === 0) {
+      parts.push(`Featured as a category leader ${apps} times, but ${p.team} lost all of them — production isn't tied to team success.`);
+    } else if (ledPts === 0 && apps >= 3) {
+      parts.push(`Featured as a category leader ${apps} times without ever leading the team in scoring — fills a complementary role.`);
     }
 
     if (distinctCats >= 5) {
       const catNames = ['pts','reb','ast','stl','blk','3pm']
         .filter(k => perf['led_'+k] > 0)
-        .map(k => k.toUpperCase().replace('3PM','3PM'))
+        .map(k => k.toUpperCase())
         .join(', ');
       parts.push(`Showed up across the box score — led ${p.team} in ${distinctCats} different categories this season (${catNames}).`);
     } else if (distinctCats >= 3) {
@@ -1025,7 +1048,7 @@ function buildReason(p, sugTier, criteria){
     if (perf.best_game_pts >= 20) {
       parts.push(`Peak performance: ${perf.best_game_pts}-point game.`);
     }
-  } else {
+  } else if (!isTraded) {
     parts.push(`Has not appeared as a team leader in any box-score category through Week 5 — limited statistical impact so far.`);
   }
 
@@ -1054,12 +1077,33 @@ const SUGGESTIONS = (function(){
   ];
   const map = {};
   scored.forEach((entry, i) => {
-    let sug = 5;
-    for (const [cut, tier] of cutoffs){ if (i < cut){ sug = tier; break; } }
-    const criteria = scoreCriteria(entry.p);
-    map[entry.p.name] = {
+    let rawSug = 5;
+    for (const [cut, tier] of cutoffs){ if (i < cut){ rawSug = tier; break; } }
+
+    // ---- Guardrails: prevent unreasonable moves ----
+    let sug = rawSug;
+    const p = entry.p;
+    const pf = PERF_DATA[p.name];
+    const isTraded = /\(traded\)/i.test(p.style || '');
+    const noSignal = !pf || (pf.appearances || 0) === 0;
+    const canBigPromote = pf && (pf.team_w_led_pts >= 2);
+    const canBigDemote = pf && (pf.led_pts >= 3 && pf.team_w_led_pts === 0);
+
+    // Cap 2-tier promotions unless player has 2+ PTS-leads-in-wins (real impact)
+    if (sug < p.tier - 1 && !canBigPromote) sug = p.tier - 1;
+    // Cap 2-tier demotions unless player has clear "scores volume in losses only" signal
+    if (sug > p.tier + 1 && !canBigDemote) sug = p.tier + 1;
+    // No big moves if there's no game-data signal at all
+    if (noSignal && Math.abs(sug - p.tier) >= 2) sug = p.tier + Math.sign(sug - p.tier);
+    // Single-appearance sample isn't enough to justify a demotion
+    if (sug > p.tier && pf && pf.appearances <= 1) sug = p.tier;
+    // Traded players: hold tier (insufficient evidence on the new context, may not be playing)
+    if (isTraded) sug = p.tier;
+
+    const criteria = scoreCriteria(p);
+    map[p.name] = {
       suggested: sug, score: +entry.score.toFixed(1), rank: i + 1, total: n,
-      criteria, reason: buildReason(entry.p, sug, criteria)
+      criteria, reason: buildReason(p, sug, criteria)
     };
   });
   ROSTER.filter(p => p.isCaptain).forEach(p => {
