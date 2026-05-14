@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>703 Circuit — Mid-Season Re-Tier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Google+Sans+Code&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* Google Canvas palette — soft, refined, light */
+    --bg: #fafbfc;
+    --surface: #ffffff;
+    --surface-elev: #ffffff;
+    --surface-tint: #f1f4f9;
+    --surface-warm: #fef7e6;
+    --ink: #1f1f1f;
+    --ink-soft: #444746;
+    --muted: #6b7280;
+    --line: #e8eaed;
+    --line-soft: #f1f3f4;
+
+    /* Accent — Google blue with warm complementary */
+    --primary: #1a73e8;
+    --primary-hover: #1765cc;
+    --primary-soft: #e8f0fe;
+    --primary-on: #ffffff;
+
+    /* Status */
+    --success: #1e8e3e;
+    --success-soft: #e6f4ea;
+    --warning: #f29900;
+    --warning-soft: #fef7e0;
+    --danger: #d93025;
+    --danger-soft: #fce8e6;
+
+    /* Tier colors — warmer, less harsh */
+    --t1: #c5221f;
+    --t1-soft: #fce8e6;
+    --t2: #f29900;
+    --t2-soft: #fef7e0;
+    --t3: #1e8e3e;
+    --t3-soft: #e6f4ea;
+    --t4: #1a73e8;
+    --t4-soft: #e8f0fe;
+    --t5: #9334e6;
+    --t5-soft: #f3e8fd;
+
+    /* Elevation */
+    --shadow-1: 0 1px 2px rgba(60,64,67,0.08), 0 1px 3px rgba(60,64,67,0.06);
+    --shadow-2: 0 1px 3px rgba(60,64,67,0.10), 0 4px 8px rgba(60,64,67,0.08);
+    --shadow-3: 0 4px 12px rgba(60,64,67,0.12), 0 8px 24px rgba(60,64,67,0.08);
+    --shadow-focus: 0 0 0 3px rgba(26,115,232,0.20);
+
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 999px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:14px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  body{
+    background-image:
+      radial-gradient(ellipse at top, rgba(26,115,232,0.04), transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(242,153,0,0.03), transparent 60%);
+  }
+
+  .page{max-width:1240px;margin:0 auto;padding:0 24px 80px}
+
+  /* ===== TOP NAV ===== */
+  header.topnav{
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+    margin:0 -24px 28px;
+    padding:14px 32px;
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+    position:sticky;top:0;z-index:30;
+    backdrop-filter:blur(8px);
+    background:rgba(255,255,255,0.92);
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{
+    width:36px;height:36px;border-radius:10px;
+    background:linear-gradient(135deg, #ea580c 0%, #c2410c 50%, #9a3412 100%);
+    position:relative;flex-shrink:0;
+    box-shadow:inset 0 -2px 4px rgba(0,0,0,0.15), var(--shadow-1);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .brand-mark svg{width:22px;height:22px;color:#fff}
+  .brand-text{display:flex;flex-direction:column}
+  .brand-text .name{
+    font-size:15px;font-weight:600;letter-spacing:-0.01em;
+    color:var(--ink);line-height:1.2;
+  }
+  .brand-text .sub{
+    font-size:11px;color:var(--muted);font-weight:500;line-height:1.2;letter-spacing:0.02em;
+  }
+  .nav-actions{display:flex;align-items:center;gap:8px}
+  .nav-chip{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 14px;
+    background:var(--surface-tint);
+    border-radius:var(--radius-full);
+    font-size:13px;font-weight:500;color:var(--ink-soft);
+    border:1px solid transparent;
+  }
+  .nav-chip.user{background:var(--primary-soft);color:var(--primary);font-weight:600}
+  .nav-chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+  /* ===== BUTTONS ===== */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:10px 20px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-full);
+    font-family:inherit;font-size:14px;font-weight:500;color:var(--ink);
+    cursor:pointer;
+    transition:all .15s ease;
+    box-shadow:var(--shadow-1);
+    white-space:nowrap;
+  }
+  .btn:hover:not(:disabled){
+    background:var(--surface-tint);
+    box-shadow:var(--shadow-2);
+    transform:translateY(-1px);
+  }
+  .btn:active:not(:disabled){transform:translateY(0)}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;box-shadow:none}
+  .btn.primary{
+    background:var(--primary);color:var(--primary-on);border-color:var(--primary);
+    box-shadow:0 1px 3px rgba(26,115,232,0.30), 0 2px 6px rgba(26,115,232,0.15);
+  }
+  .btn.primary:hover:not(:disabled){background:var(--primary-hover);box-shadow:0 2px 6px rgba(26,115,232,0.35), 0 4px 12px rgba(26,115,232,0.20)}
+  .btn.ghost{background:transparent;border-color:transparent;box-shadow:none;color:var(--primary)}
+  .btn.ghost:hover{background:var(--primary-soft)}
+  .btn.success{background:var(--success);color:#fff;border-color:var(--success)}
+  .btn.success:hover{background:#0d652d}
+  .btn.danger{background:var(--surface);color:var(--danger);border-color:var(--line)}
+  .btn.danger:hover{background:var(--danger-soft);border-color:var(--danger)}
+  .btn.sm{padding:6px 14px;font-size:13px}
+  .btn.lg{padding:12px 28px;font-size:15px}
+  .btn .icon{width:16px;height:16px;display:inline-block}
+  .btn:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
+
+  /* ===== CARDS ===== */
+  .card{
+    background:var(--surface);
+    border-radius:var(--radius-lg);
+    border:1px solid var(--line);
+    box-shadow:var(--shadow-1);
+  }
+  .card.elev{box-shadow:var(--shadow-2)}
+
+  /* ===== LOGIN ===== */
+  .hero{
+    max-width:520px;margin:32px auto 0;
+    text-align:center;padding:48px 24px 24px;
+  }
+  .hero h1{
+    font-size:36px;font-weight:600;letter-spacing:-0.025em;
+    color:var(--ink);line-height:1.15;margin-bottom:12px;
+    font-family:'Inter',sans-serif;
+  }
+  .hero p{
+    font-size:16px;color:var(--muted);line-height:1.5;max-width:420px;margin:0 auto;
+  }
+
+  .captain-picker{
+    max-width:560px;margin:32px auto;
+  }
+  .captain-picker-head{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:0 4px;
+  }
+  .captain-picker-head h2{
+    font-size:14px;font-weight:600;letter-spacing:0.04em;color:var(--muted);text-transform:uppercase;
+  }
+  .captain-picker-head .progress-text{
+    font-size:13px;color:var(--ink-soft);
+  }
+  .captain-picker-head .progress-text strong{color:var(--ink);font-weight:600}
+
+  .captain-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
+  }
+  .captain-card{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 16px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    cursor:pointer;
+    transition:all .15s ease;
+    font-family:inherit;font-size:14px;text-align:left;
+    box-shadow:var(--shadow-1);
+    color:var(--ink);
+    width:100%;
+  }
+  .captain-card:hover{
+    border-color:var(--primary);
+    box-shadow:var(--shadow-2);
+    transform:translateY(-1px);
+  }
+  .captain-card.submitted{background:var(--success-soft);border-color:#a8d5b4}
+  .captain-avatar{
+    width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:600;font-size:14px;
+    flex-shrink:0;
+    box-shadow:inset 0 -1px 2px rgba(0,0,0,0.15);
+  }
+  .captain-info{flex:1;min-width:0}
+  .captain-info .name{font-weight:500;color:var(--ink);font-size:14px;line-height:1.3}
+  .captain-info .team{font-size:12px;color:var(--muted);margin-top:1px}
+  .captain-status{
+    font-size:11px;font-weight:600;letter-spacing:0.04em;
+    color:var(--muted);text-transform:uppercase;
+    display:flex;align-items:center;gap:4px;
+  }
+  .captain-card.submitted .captain-status{color:var(--success)}
+
+  .login-secondary{
+    margin-top:24px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap;
+  }
+
+  /* ===== PASSWORD MODAL ===== */
+  .pw-modal-content{padding:28px}
+  .pw-modal-content .avatar-lg{
+    width:56px;height:56px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:600;font-size:20px;
+    margin:0 auto 16px;
+    box-shadow:var(--shadow-2);
+  }
+  .pw-modal-content h3{
+    font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+  .pw-modal-content .sub-name{
+    text-align:center;color:var(--muted);font-size:13px;margin-bottom:20px;
+  }
+  .pw-input-wrap{position:relative;margin-bottom:8px}
+  .pw-input{
+    width:100%;padding:14px 44px 14px 16px;
+    background:var(--surface-tint);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    font-family:inherit;font-size:15px;color:var(--ink);
+    transition:all .15s;
+  }
+  .pw-input:focus{
+    outline:none;background:var(--surface);border-color:var(--primary);
+    box-shadow:var(--shadow-focus);
+  }
+  .pw-toggle{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    background:none;border:none;cursor:pointer;
+    color:var(--muted);font-size:12px;font-weight:500;
+    padding:4px 8px;border-radius:6px;
+  }
+  .pw-toggle:hover{background:var(--surface-tint);color:var(--ink)}
+  .pw-msg{
+    min-height:18px;font-size:12px;color:var(--danger);
+    padding:4px 4px 0;display:flex;align-items:center;gap:4px;
+  }
+  .pw-hint{font-size:12px;color:var(--muted);text-align:center;margin-top:14px;font-style:italic;font-family:'Newsreader',serif}
+  .pw-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+
+  /* ===== PROGRESS BANNER ===== */
+  .progress-banner{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:20px 24px;margin-bottom:20px;
+    display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;
+    box-shadow:var(--shadow-1);
+  }
+  .progress-banner .pb-text h3{
+    font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-0.01em;
+  }
+  .progress-banner .pb-text p{
+    font-size:13px;color:var(--muted);margin-top:2px;
+  }
+  .progress-track{display:flex;align-items:center;gap:14px}
+  .progress-bar{
+    height:8px;width:200px;background:var(--surface-tint);border-radius:var(--radius-full);overflow:hidden;
+    position:relative;
+  }
+  .progress-fill{
+    height:100%;background:linear-gradient(90deg, var(--primary), #4285f4);
+    border-radius:inherit;transition:width .4s ease;
+  }
+  .progress-num{font-size:14px;font-weight:600;color:var(--ink)}
+  .progress-num .total{color:var(--muted);font-weight:500}
+
+  /* ===== INFO CALLOUT ===== */
+  .callout{
+    background:var(--primary-soft);
+    border:1px solid #c8e0fc;
+    border-radius:var(--radius);
+    padding:14px 18px;margin-bottom:20px;
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:13px;line-height:1.5;color:var(--ink-soft);
+  }
+  .callout .ico{
+    flex-shrink:0;width:20px;height:20px;color:var(--primary);
+  }
+  .callout strong{color:var(--ink);font-weight:600}
+
+  /* ===== TOOLBAR ===== */
+  .toolbar{
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:8px;margin-bottom:16px;
+    box-shadow:var(--shadow-1);
+  }
+  .toolbar .group{display:flex;gap:4px;align-items:center}
+  .toolbar .divider{width:1px;height:24px;background:var(--line);margin:0 4px}
+  .tab{
+    padding:6px 14px;border:none;background:transparent;
+    font-family:inherit;font-size:13px;font-weight:500;color:var(--ink-soft);
+    border-radius:var(--radius-full);cursor:pointer;transition:all .15s;
+  }
+  .tab:hover{background:var(--surface-tint)}
+  .tab.active{background:var(--primary-soft);color:var(--primary);font-weight:600}
+  .search-input{
+    flex:1;min-width:200px;
+    padding:8px 14px 8px 38px;
+    background:var(--surface-tint);
+    border:1px solid transparent;
+    border-radius:var(--radius-full);
+    font-family:inherit;font-size:13px;color:var(--ink);
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>");
+    background-repeat:no-repeat;
+    background-position:12px center;
+  }
+  .search-input:focus{outline:none;background-color:var(--surface);border-color:var(--primary);box-shadow:var(--shadow-focus)}
+
+  /* ===== PLAYER LIST ===== */
+  .player-list{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    overflow:hidden;
+    box-shadow:var(--shadow-1);
+  }
+  .player-row{
+    display:grid;
+    grid-template-columns:36px minmax(220px, 1.5fr) 110px 80px 1fr auto;
+    align-items:center;gap:16px;
+    padding:14px 20px;
+    border-bottom:1px solid var(--line-soft);
+    transition:background .12s;
+  }
+  .player-row:last-child{border-bottom:none}
+  .player-row:hover{background:var(--surface-tint)}
+  .player-row.changed{background:linear-gradient(90deg, var(--warning-soft), transparent 60%)}
+  .player-row.locked-row{background:linear-gradient(90deg, var(--surface-tint), transparent 60%)}
+
+  .row-idx{
+    font-size:12px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums;
+  }
+  .player-name{
+    display:flex;flex-direction:column;gap:2px;min-width:0;
+  }
+  .player-name .pn-line{
+    display:flex;align-items:center;gap:8px;font-weight:500;font-size:14px;color:var(--ink);
+  }
+  .player-name .pn-style{
+    font-size:12px;color:var(--muted);line-height:1.4;
+    overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;
+  }
+  .badge{
+    display:inline-flex;align-items:center;
+    padding:1px 7px;border-radius:var(--radius-full);
+    font-size:10px;font-weight:600;letter-spacing:0.03em;
+    text-transform:uppercase;
+  }
+  .badge.capt{background:var(--warning-soft);color:#8a5a00;border:1px solid #f5deb3}
+  .badge.myteam{background:var(--primary-soft);color:var(--primary);border:1px solid #c8e0fc}
+  .team-pill{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:12px;color:var(--ink-soft);font-weight:500;
+  }
+  .team-dot{
+    width:10px;height:10px;border-radius:50%;flex-shrink:0;
+    border:1.5px solid rgba(0,0,0,0.08);
+    box-shadow:inset 0 -1px 2px rgba(0,0,0,0.12);
+  }
+  .ppg-cell{display:flex;flex-direction:column;align-items:center}
+  .ppg-cell .num{font-size:16px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .ppg-cell .lbl{font-size:10px;color:var(--muted);font-weight:500;letter-spacing:0.05em;text-transform:uppercase}
+
+  .tier-selector{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  .tier-current-label{
+    font-size:11px;color:var(--muted);font-weight:500;margin-right:6px;
+  }
+  .tier-current-label strong{color:var(--ink);font-weight:600}
+  .tier-btn{
+    min-width:40px;height:36px;padding:0 10px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    font-family:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);
+    cursor:pointer;transition:all .12s;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  .tier-btn:hover:not(:disabled){background:var(--surface-tint);color:var(--ink)}
+  .tier-btn.is-current{border-color:var(--ink-soft);border-style:dashed}
+  .tier-btn.selected{color:#fff;border-color:transparent;box-shadow:var(--shadow-1)}
+  .tier-btn.selected[data-tier="1"]{background:var(--t1)}
+  .tier-btn.selected[data-tier="2"]{background:var(--t2);color:#7a4a00}
+  .tier-btn.selected[data-tier="3"]{background:var(--t3)}
+  .tier-btn.selected[data-tier="4"]{background:var(--t4)}
+  .tier-btn.selected[data-tier="5"]{background:var(--t5)}
+  .tier-btn:disabled{cursor:not-allowed;opacity:0.5}
+
+  .lock-chip{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 12px;
+    background:var(--warning-soft);color:#8a5a00;
+    border:1px solid #f5deb3;
+    border-radius:var(--radius-full);
+    font-size:12px;font-weight:600;
+  }
+
+  /* ===== STICKY SUBMIT BAR ===== */
+  .submit-bar{
+    position:sticky;bottom:0;margin:24px -24px -80px;padding:16px 32px;
+    background:rgba(255,255,255,0.95);
+    backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+    box-shadow:0 -4px 12px rgba(60,64,67,0.06);
+    z-index:20;
+  }
+  .submit-bar .summary{font-size:13px;color:var(--muted)}
+  .submit-bar .summary strong{color:var(--ink);font-weight:600}
+  .submit-bar .actions{display:flex;gap:8px}
+
+  /* ===== STATUS BANNERS ===== */
+  .status-card{
+    border-radius:var(--radius-lg);
+    padding:24px;margin-bottom:20px;
+    display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;
+    box-shadow:var(--shadow-1);
+  }
+  .status-card.success{background:var(--success-soft);border:1px solid #a8d5b4}
+  .status-card .icon-wrap{
+    width:48px;height:48px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;color:#fff;
+  }
+  .status-card.success .icon-wrap{background:var(--success)}
+  .status-card .text-wrap{flex:1;min-width:200px}
+  .status-card h3{font-size:17px;font-weight:600;color:var(--ink);margin-bottom:2px}
+  .status-card p{font-size:13px;color:var(--ink-soft);line-height:1.5}
+
+  /* ===== REPORT / CHANGE CARDS ===== */
+  .section{margin-top:32px}
+  .section-head{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    margin-bottom:16px;gap:12px;flex-wrap:wrap;padding:0 4px;
+  }
+  .section-head h2{
+    font-size:22px;font-weight:600;color:var(--ink);letter-spacing:-0.015em;
+  }
+  .section-head .meta{font-size:12px;color:var(--muted);font-weight:500}
+
+  .change-list{display:flex;flex-direction:column;gap:8px}
+  .change-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 18px;
+    display:grid;grid-template-columns:1fr auto auto auto 1fr auto;
+    gap:16px;align-items:center;
+    box-shadow:var(--shadow-1);
+    transition:all .15s;
+  }
+  .change-card:hover{box-shadow:var(--shadow-2)}
+  .change-card.no-change{opacity:0.7;background:var(--surface-tint)}
+  .change-card.approved{border-left:4px solid var(--success);background:linear-gradient(90deg, var(--success-soft) 0%, var(--surface) 30%)}
+  .change-card.rejected{border-left:4px solid var(--danger);background:linear-gradient(90deg, var(--danger-soft) 0%, var(--surface) 30%);opacity:0.75}
+
+  .change-name{font-size:14px;font-weight:500;color:var(--ink)}
+  .change-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:2px}
+
+  .tier-pill{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:44px;height:32px;padding:0 10px;
+    border-radius:var(--radius-sm);
+    font-size:13px;font-weight:600;color:#fff;
+  }
+  .tier-pill[data-tier="1"]{background:var(--t1)}
+  .tier-pill[data-tier="2"]{background:var(--t2);color:#7a4a00}
+  .tier-pill[data-tier="3"]{background:var(--t3)}
+  .tier-pill[data-tier="4"]{background:var(--t4)}
+  .tier-pill[data-tier="5"]{background:var(--t5)}
+  .arrow-svg{color:var(--muted);width:20px;height:20px}
+
+  .vote-breakdown{
+    display:flex;gap:3px;align-items:center;
+    font-size:11px;color:var(--ink-soft);font-variant-numeric:tabular-nums;
+  }
+  .vote-breakdown .vb-cell{
+    min-width:24px;padding:3px 6px;text-align:center;
+    background:var(--surface-tint);border-radius:6px;
+  }
+  .vote-breakdown .vb-cell.win{background:var(--ink);color:#fff;font-weight:600}
+
+  .change-actions{display:flex;gap:6px}
+
+  /* ===== DASHBOARD ===== */
+  .dash-filters{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:16px 20px;margin-bottom:16px;
+    display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;
+    box-shadow:var(--shadow-1);
+  }
+  .filter-group{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .filter-group label{
+    font-size:11px;font-weight:600;letter-spacing:0.05em;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .chip-row{display:flex;gap:4px;flex-wrap:wrap}
+  .chip{
+    padding:5px 12px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-full);
+    font-family:inherit;font-size:12px;font-weight:500;color:var(--ink-soft);
+    cursor:pointer;transition:all .12s;
+  }
+  .chip:hover{background:var(--surface-tint);color:var(--ink)}
+  .chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .filter-group select{
+    padding:7px 12px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    font-family:inherit;font-size:13px;color:var(--ink);
+    cursor:pointer;
+    min-width:140px;
+  }
+  .filter-group select:focus{outline:none;border-color:var(--primary);box-shadow:var(--shadow-focus)}
+  .filter-group input[type="search"]{
+    padding:8px 14px 8px 38px;width:200px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>");
+    background-repeat:no-repeat;
+    background-position:12px center;
+  }
+
+  .dash-grid{display:flex;flex-direction:column;gap:10px}
+  .dash-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    transition:all .15s ease;
+    box-shadow:var(--shadow-1);
+  }
+  .dash-card:hover{box-shadow:var(--shadow-2);transform:translateY(-1px)}
+  .dash-card.up{border-left:4px solid var(--success)}
+  .dash-card.down{border-left:4px solid var(--danger)}
+  .dash-card.hold{border-left:4px solid var(--line)}
+  .dash-card.lock{border-left:4px solid var(--warning)}
+
+  .dash-head{
+    display:grid;
+    grid-template-columns:minmax(240px,1.6fr) auto minmax(200px,1fr) auto;
+    gap:20px;align-items:center;
+    padding:14px 18px;
+  }
+  .dash-id{display:flex;align-items:center;gap:14px;min-width:0}
+  .dash-rank{
+    font-size:13px;font-weight:600;color:var(--muted);
+    min-width:36px;font-variant-numeric:tabular-nums;
+  }
+  .dash-name{
+    font-size:15px;font-weight:600;color:var(--ink);line-height:1.2;
+    display:flex;align-items:center;gap:8px;
+  }
+  .dash-sub{
+    font-size:12px;color:var(--muted);margin-top:3px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .dash-style{
+    font-size:12px;color:var(--muted);margin-top:4px;
+    overflow:hidden;text-overflow:ellipsis;
+    display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;
+    max-width:340px;
+    font-family:'Newsreader',serif;font-style:italic;
+  }
+
+  .dash-tiers{display:flex;align-items:center;gap:12px}
+  .tier-block{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .tier-lbl{font-size:10px;font-weight:600;letter-spacing:0.05em;color:var(--muted);text-transform:uppercase}
+  .dash-arrow{
+    width:24px;height:24px;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;font-size:13px;font-weight:700;
+  }
+  .dash-arrow.up{background:var(--success-soft);color:var(--success)}
+  .dash-arrow.down{background:var(--danger-soft);color:var(--danger)}
+  .dash-arrow.hold{background:var(--surface-tint);color:var(--muted)}
+  .dash-arrow.lock{background:var(--warning-soft);color:var(--warning)}
+
+  .dash-statline{display:flex;gap:16px;justify-content:center}
+  .dash-statline .stat{display:flex;flex-direction:column;align-items:center}
+  .dash-statline .stat .v{font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .dash-statline .stat .k{font-size:10px;color:var(--muted);font-weight:500;letter-spacing:0.04em;text-transform:uppercase;margin-top:1px}
+
+  .dash-meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .move-tag{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:3px 10px;border-radius:var(--radius-full);
+    font-size:11px;font-weight:600;letter-spacing:0.03em;
+  }
+  .move-tag.up{background:var(--success-soft);color:var(--success)}
+  .move-tag.down{background:var(--danger-soft);color:var(--danger)}
+  .move-tag.hold{background:var(--surface-tint);color:var(--muted)}
+  .move-tag.lock{background:var(--warning-soft);color:#8a5a00}
+  .composite-score{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:500}
+  .composite-score strong{font-size:14px;color:var(--ink);font-weight:600}
+  .expand-btn{
+    background:transparent;border:1px solid var(--line);
+    padding:4px 10px;font-family:inherit;font-size:11px;font-weight:500;
+    color:var(--ink-soft);border-radius:var(--radius-full);cursor:pointer;
+    transition:all .12s;
+  }
+  .expand-btn:hover{background:var(--surface-tint);border-color:var(--ink-soft)}
+
+  .dash-breakdown{
+    background:var(--surface-tint);
+    border-top:1px solid var(--line);
+    padding:18px 22px;
+    display:flex;flex-direction:column;gap:16px;
+  }
+  .reason-block{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:3px solid var(--primary);
+    border-radius:var(--radius);
+    padding:12px 16px;
+  }
+  .reason-label{
+    font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;
+    color:var(--primary);margin-bottom:6px;
+  }
+  .reason-text{
+    font-size:13px;line-height:1.55;color:var(--ink);
+    font-family:'Newsreader',serif;
+  }
+  .crit-list{
+    display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:8px 32px;
+  }
+  .crit-row{
+    display:grid;grid-template-columns:170px 1fr 40px;gap:12px;align-items:center;
+    padding:4px 0;
+  }
+  .crit-name{font-size:12px;font-weight:500;color:var(--ink-soft)}
+  .crit-bar{
+    height:6px;background:var(--surface);border-radius:var(--radius-full);
+    overflow:hidden;position:relative;border:1px solid var(--line-soft);
+  }
+  .crit-fill{
+    height:100%;border-radius:inherit;
+    background:linear-gradient(90deg, var(--primary), #4285f4);
+    transition:width .3s ease;
+  }
+  .crit-val{font-size:11px;font-weight:600;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+  .crit-note{
+    grid-column:1/-1;font-size:12px;color:var(--muted);
+    padding-top:10px;border-top:1px dashed var(--line);
+    font-family:'Newsreader',serif;font-style:italic;
+  }
+
+  /* ===== COMMISSIONER PANEL ===== */
+  .commish-panel{
+    background:linear-gradient(135deg, #1f1f1f 0%, #2d2d2d 100%);
+    color:#fff;
+    border-radius:var(--radius-lg);
+    padding:24px 28px;margin:20px 0;
+    display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;
+    box-shadow:var(--shadow-2);
+  }
+  .commish-panel h3{font-size:18px;font-weight:600;color:#fff;margin-bottom:4px}
+  .commish-panel p{font-size:13px;color:rgba(255,255,255,0.75);line-height:1.5;max-width:420px}
+  .commish-panel .btn.primary{background:var(--warning);color:#1f1f1f;border-color:var(--warning);box-shadow:0 2px 6px rgba(242,153,0,0.4)}
+  .commish-panel .btn.primary:hover{background:#e08e00}
+
+  .final-stamp{
+    background:linear-gradient(135deg, var(--success) 0%, #2c8c47 100%);
+    color:#fff;
+    border-radius:var(--radius-lg);
+    padding:32px;margin:24px 0;text-align:center;
+    box-shadow:var(--shadow-2);
+  }
+  .final-stamp .check{
+    width:56px;height:56px;border-radius:50%;
+    background:rgba(255,255,255,0.2);
+    display:inline-flex;align-items:center;justify-content:center;
+    margin-bottom:12px;
+  }
+  .final-stamp h2{font-size:24px;font-weight:600;letter-spacing:-0.01em}
+  .final-stamp p{font-size:13px;color:rgba(255,255,255,0.85);margin-top:6px;letter-spacing:0.02em}
+
+  /* ===== TOAST & MODAL ===== */
+  .toast{
+    position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:#1f1f1f;color:#fff;padding:12px 20px;
+    font-size:13px;font-weight:500;
+    border-radius:var(--radius-full);
+    transition:transform .3s cubic-bezier(0.4,0,0.2,1);
+    z-index:100;box-shadow:var(--shadow-3);
+    display:flex;align-items:center;gap:8px;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.success{background:var(--success)}
+  .toast.error{background:var(--danger)}
+
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(32,33,36,0.6);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+    backdrop-filter:blur(4px);
+    animation:fadeIn .15s ease;
+  }
+  .modal-bg.show{display:flex}
+  .modal{
+    background:var(--surface);
+    border-radius:var(--radius-xl);
+    padding:28px;
+    max-width:480px;width:100%;
+    box-shadow:var(--shadow-3);
+    animation:modalIn .2s cubic-bezier(0.4,0,0.2,1);
+  }
+  .modal h3{font-size:20px;font-weight:600;color:var(--ink);margin-bottom:8px;letter-spacing:-0.01em}
+  .modal p{font-size:14px;color:var(--ink-soft);line-height:1.5;margin-bottom:16px}
+  .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(0.96)}to{opacity:1;transform:none}}
+
+  /* ===== TEAM COLORS ===== */
+  .team-Black{background:#1f1f1f}
+  .team-Blue{background:#1a73e8}
+  .team-Brown{background:#8b4513}
+  .team-Green{background:#1e8e3e}
+  .team-Grey{background:#80868b}
+  .team-Orange{background:#ea580c}
+  .team-Purple{background:#9334e6}
+  .team-Red{background:#c5221f}
+  .team-White{background:#f8f9fa;border-color:#80868b !important}
+  .team-Yellow{background:#fbbc04}
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 880px){
+    header.topnav{padding:12px 20px}
+    .page{padding:0 16px 80px}
+    .hero{padding:32px 16px 16px}
+    .hero h1{font-size:26px}
+    .player-row{grid-template-columns:32px 1fr;gap:10px;padding:14px 16px}
+    .player-row > .team-pill, .player-row > .ppg-cell{grid-column:2;display:inline-flex}
+    .player-row > .ppg-cell{flex-direction:row;gap:6px;align-items:baseline}
+    .tier-selector{grid-column:1/-1;margin-top:8px;justify-content:flex-start;flex-wrap:wrap}
+    .tier-btn{min-width:36px;height:32px;font-size:12px}
+    .change-card{grid-template-columns:1fr;gap:10px}
+    .captain-grid{grid-template-columns:1fr}
+    .dash-head{grid-template-columns:1fr;gap:14px}
+    .dash-meta{flex-direction:row;align-items:center;justify-content:space-between;width:100%}
+    .crit-row{grid-template-columns:140px 1fr 36px}
+    .submit-bar{padding:14px 20px;margin-left:-16px;margin-right:-16px}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="topnav">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="name">703 Circuit</span>
+        <span class="sub">Mid-Season Re-Tier · Season 3</span>
+      </div>
+    </div>
+    <div class="nav-actions" id="navActions"></div>
+  </header>
+
+  <main id="app"></main>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+/* ============================================================
+   PLAYER ROSTER — derived from the uploaded scouting CSV
+   ============================================================ */
+const ROSTER = [{"name":"Fox Tariq","tier":1,"height":"","team":"Red","style":"Captain","ppg":15.8,"rpg":4.4,"apg":1.6,"bpg":1.0,"spg":1.0,"fgp":36.1,"tpp":31.3,"ftp":78.8,"isCaptain":true},{"name":"John Welsh","tier":1,"height":"","team":"Blue","style":"Captain","ppg":13.5,"rpg":2.4,"apg":2.0,"bpg":0.0,"spg":1.1,"fgp":44.7,"tpp":25.9,"ftp":82.5,"isCaptain":true},{"name":"Sofe Fellah","tier":1,"height":"","team":"White","style":"Captain","ppg":13.1,"rpg":3.3,"apg":1.1,"bpg":1.0,"spg":0.6,"fgp":37.9,"tpp":34.4,"ftp":68.0,"isCaptain":true},{"name":"David Amin","tier":1,"height":"","team":"Yellow","style":"Captain","ppg":12.6,"rpg":4.1,"apg":2.0,"bpg":0.1,"spg":0.6,"fgp":44.4,"tpp":35.9,"ftp":46.7,"isCaptain":true},{"name":"Ahmed (AK) Khan","tier":1,"height":"","team":"Green","style":"Captain","ppg":10.0,"rpg":5.1,"apg":1.6,"bpg":0.8,"spg":1.5,"fgp":37.8,"tpp":24.3,"ftp":81.8,"isCaptain":true},{"name":"Sumant Bhupathiraju","tier":1,"height":"","team":"Orange","style":"Captain","ppg":9.8,"rpg":5.0,"apg":1.3,"bpg":0.0,"spg":0.8,"fgp":23.4,"tpp":19.0,"ftp":68.4,"isCaptain":true},{"name":"Oaan Rana","tier":1,"height":"","team":"Brown","style":"Captain","ppg":7.6,"rpg":4.0,"apg":1.3,"bpg":0.3,"spg":0.5,"fgp":53.2,"tpp":0.0,"ftp":44.0,"isCaptain":true},{"name":"Tahseen Almas","tier":1,"height":"6'2.5","team":"Grey","style":"Captain","ppg":16.3,"rpg":5.8,"apg":1.1,"bpg":0.0,"spg":0.5,"fgp":57.5,"tpp":38.5,"ftp":null,"isCaptain":true},{"name":"Gerald Mack","tier":1,"height":"","team":"Purple","style":"Captain","ppg":6.1,"rpg":4.4,"apg":1.1,"bpg":0.8,"spg":0.9,"fgp":40.4,"tpp":33.3,"ftp":14.3,"isCaptain":true},{"name":"Sheryar Akbar","tier":1,"height":"","team":"Black","style":"Captain","ppg":4.6,"rpg":3.0,"apg":2.6,"bpg":0.6,"spg":0.6,"fgp":44.0,"tpp":36.8,"ftp":57.1,"isCaptain":true},{"name":"Matt Bradley","tier":2,"height":"5'9","team":"Grey","style":"Primary ball handler and pointguard with elite 3 point game","ppg":6.7,"rpg":2.3,"apg":2.8,"bpg":0.0,"spg":0.7,"fgp":40.0,"tpp":47.8,"ftp":83.3,"isCaptain":false},{"name":"Abe Faridi","tier":2,"height":"5'10","team":"Black","style":"Well rounded player. Strong slasher and mid range. Pretty good passer.","ppg":12.0,"rpg":3.0,"apg":1.3,"bpg":0.7,"spg":0.8,"fgp":41.4,"tpp":50.0,"ftp":88.2,"isCaptain":false},{"name":"Mo Rana","tier":2,"height":"6'1","team":"Brown","style":"Skinny slasher scorer. Can get hot from 3 but prefers to drive. Willing passer and decent versatility on defense.","ppg":9.8,"rpg":3.4,"apg":0.6,"bpg":0.4,"spg":1.0,"fgp":40.0,"tpp":33.3,"ftp":71.4,"isCaptain":false},{"name":"Hammad Shakeel","tier":2,"height":"6'1","team":"Purple","style":"Catch and shoot 3 point shooter, hustles. Long arms and can play D.","ppg":8.6,"rpg":2.1,"apg":1.0,"bpg":0.7,"spg":0.4,"fgp":35.7,"tpp":26.1,"ftp":66.7,"isCaptain":false},{"name":"Sam Abdi","tier":2,"height":"6'0","team":"Yellow","style":"S1 Best Shooter of the Szn Award. Good shooter and plays team ball.","ppg":7.6,"rpg":2.6,"apg":1.0,"bpg":0.3,"spg":0.3,"fgp":39.7,"tpp":29.7,"ftp":66.7,"isCaptain":false},{"name":"Zain Khan","tier":2,"height":"5'11","team":"White","style":"Strong passer and lock down defender. Can be a primary scorer.","ppg":7.6,"rpg":4.4,"apg":1.4,"bpg":0.3,"spg":0.4,"fgp":42.9,"tpp":25.0,"ftp":60.0,"isCaptain":false},{"name":"Veshal Gondal","tier":2,"height":"6'2","team":"Blue","style":"Well rounded big man. Slow paced and efficient. Can occasionally knock down 3s.","ppg":7.5,"rpg":6.8,"apg":0.5,"bpg":0.3,"spg":1.0,"fgp":68.0,"tpp":25.0,"ftp":62.5,"isCaptain":false},{"name":"Faizan Aslam","tier":2,"height":"6'3","team":"Orange","style":"True Center.","ppg":5.1,"rpg":7.3,"apg":0.5,"bpg":0.3,"spg":0.6,"fgp":43.3,"tpp":16.7,"ftp":50.0,"isCaptain":false},{"name":"Jawaid Zahory","tier":2,"height":"6'2","team":"White","style":"Big man, can post up down low and penetrate the basket. Solid 3 point shooter.","ppg":4.7,"rpg":6.8,"apg":2.0,"bpg":0.0,"spg":0.0,"fgp":37.9,"tpp":23.1,"ftp":75.0,"isCaptain":false},{"name":"Omair Uddin","tier":2,"height":"6'4","team":"Red","style":"Top rebounder. Good touch around the rim, high IQ and great passer.","ppg":4.1,"rpg":7.5,"apg":0.5,"bpg":0.8,"spg":0.8,"fgp":42.4,"tpp":30.8,"ftp":14.3,"isCaptain":false},{"name":"Khaled Abdulla","tier":2,"height":"6'2","team":"Blue","style":"Big man. Plays strong defense, can guard anyone. Primarily rebounder/screener on offense. Can be PG.","ppg":2.5,"rpg":4.0,"apg":0.8,"bpg":1.2,"spg":0.5,"fgp":55.6,"tpp":0.0,"ftp":41.7,"isCaptain":false},{"name":"Waleed Ershad","tier":3,"height":"6'0","team":"White","style":"Great post player and mid range. Good rebounder and communicator on and off the court.","ppg":8.0,"rpg":5.0,"apg":0.5,"bpg":0.1,"spg":1.3,"fgp":50.0,"tpp":22.2,"ftp":57.1,"isCaptain":false},{"name":"Pali Gill","tier":3,"height":"5'10","team":"Orange","style":"Great 3pt shooter. High IQ player on offense and defense. Can create plays for different scenarios.","ppg":7.0,"rpg":2.4,"apg":1.3,"bpg":0.0,"spg":0.6,"fgp":30.4,"tpp":29.5,"ftp":64.3,"isCaptain":false},{"name":"Puneet Badwal","tier":3,"height":"5'8","team":"Green","style":"All round player. Primarily hustle, slasher, and defense.","ppg":6.9,"rpg":3.6,"apg":1.4,"bpg":0.6,"spg":0.9,"fgp":46.7,"tpp":40.0,"ftp":63.6,"isCaptain":false},{"name":"Eugene Arthur","tier":3,"height":"5'9","team":"Green","style":"Shifty guard who attacks the rim, can knock down jumpers and plays defense. (Traded)","ppg":6.8,"rpg":3.1,"apg":1.3,"bpg":0.0,"spg":0.6,"fgp":30.5,"tpp":16.7,"ftp":63.6,"isCaptain":false},{"name":"Yohan Yazdi","tier":3,"height":"5'10","team":"Yellow","style":"Gritty defender and reliable 3 point shooter who brings a strong, physical presence on the floor.","ppg":5.3,"rpg":3.9,"apg":1.4,"bpg":0.3,"spg":0.9,"fgp":45.9,"tpp":33.3,"ftp":100.0,"isCaptain":false},{"name":"Aaron Jawad","tier":3,"height":"5'10","team":"Grey","style":"","ppg":3.9,"rpg":3.0,"apg":0.9,"bpg":0.0,"spg":1.1,"fgp":46.4,"tpp":40.0,"ftp":50.0,"isCaptain":false},{"name":"Owais (OJ) Javed","tier":3,"height":"6'2","team":"Green","style":"Lanky player. Can disrupt shots around the rim. Good mid range touch and good finisher around the rim.","ppg":3.4,"rpg":3.0,"apg":0.5,"bpg":0.4,"spg":0.4,"fgp":26.7,"tpp":7.7,"ftp":33.3,"isCaptain":false},{"name":"Philip McMahan","tier":3,"height":"6'2","team":"Purple","style":"Big man, physical cutter and rebounder.","ppg":2.9,"rpg":5.9,"apg":1.4,"bpg":0.3,"spg":0.8,"fgp":45.8,"tpp":20.0,"ftp":null,"isCaptain":false},{"name":"Matt Le Plan","tier":4,"height":"6'1","team":"Black","style":"Active defender, high motor, mid range, slasher.","ppg":8.4,"rpg":4.3,"apg":0.5,"bpg":0.1,"spg":0.5,"fgp":49.2,"tpp":38.5,"ftp":66.7,"isCaptain":false},{"name":"Abdullah Rana","tier":4,"height":"5'6","team":"Blue","style":"Hustle player on both ends. Reliable mid range shot. X factor on a team.","ppg":7.8,"rpg":1.5,"apg":0.1,"bpg":0.1,"spg":1.3,"fgp":40.0,"tpp":23.8,"ftp":55.6,"isCaptain":false},{"name":"Matt Harrison","tier":4,"height":"6'1","team":"Yellow","style":"Athletic, driver, finisher, and passer.","ppg":5.9,"rpg":5.0,"apg":1.8,"bpg":0.3,"spg":0.9,"fgp":31.7,"tpp":28.0,"ftp":28.6,"isCaptain":false},{"name":"Manveer Johar","tier":4,"height":"5'8","team":"Brown","style":"All around player. Quick, good defender, good passer.","ppg":5.1,"rpg":1.5,"apg":0.0,"bpg":0.3,"spg":0.5,"fgp":39.5,"tpp":42.9,"ftp":28.6,"isCaptain":false},{"name":"Mohammed Hasnain","tier":4,"height":"5'10","team":"Grey","style":"","ppg":5.0,"rpg":2.5,"apg":0.5,"bpg":0.0,"spg":0.3,"fgp":53.8,"tpp":50.0,"ftp":100.0,"isCaptain":false},{"name":"Farhan Chughtai","tier":4,"height":"5'9","team":"Purple","style":"3 point shooter, defender, high motor, top of the key pick and roll specialist.","ppg":5.0,"rpg":1.0,"apg":0.8,"bpg":0.0,"spg":0.1,"fgp":24.6,"tpp":22.4,"ftp":16.7,"isCaptain":false},{"name":"Ricky Choeung","tier":4,"height":"5'6","team":"Brown","style":"Great defender and very physical in the paint. High motor, can shoot, drive and get boards.","ppg":4.5,"rpg":2.3,"apg":0.0,"bpg":0.0,"spg":0.6,"fgp":38.2,"tpp":12.5,"ftp":72.7,"isCaptain":false},{"name":"Usman Ahmad","tier":4,"height":"5'10","team":"Orange","style":"High motor. Strong defender, always does the dirty work and makes the right play.","ppg":3.5,"rpg":4.0,"apg":0.8,"bpg":0.0,"spg":1.0,"fgp":38.9,"tpp":12.5,"ftp":60.0,"isCaptain":false},{"name":"Nikhil Kamineni","tier":4,"height":"6'2","team":"Black","style":"Great rebounder, pass first big man. Reliable 3 point shot. Good help defender.","ppg":3.0,"rpg":4.6,"apg":1.0,"bpg":0.5,"spg":0.3,"fgp":34.6,"tpp":26.7,"ftp":40.0,"isCaptain":false},{"name":"Ahsan Zaman","tier":4,"height":"5'10","team":"Red","style":"PG, facilitator, and loves the mid range shot.","ppg":3.0,"rpg":3.3,"apg":0.8,"bpg":0.0,"spg":0.5,"fgp":22.2,"tpp":20.0,"ftp":66.7,"isCaptain":false},{"name":"Naveed Kolia","tier":4,"height":"5'10","team":"Green","style":"All arounder, slasher type, strong rebounder, streaky shooter, good IQ, team player, solid ball handling.","ppg":2.6,"rpg":4.0,"apg":1.1,"bpg":0.5,"spg":0.1,"fgp":32.0,"tpp":33.3,"ftp":25.0,"isCaptain":false},{"name":"Bajj Bhattarai","tier":4,"height":"5'9","team":"Red","style":"High IQ ball handler. Good passer, strong defender. Attacks the rim and facilitates.","ppg":2.3,"rpg":1.9,"apg":1.1,"bpg":0.0,"spg":0.4,"fgp":40.0,"tpp":0.0,"ftp":20.0,"isCaptain":false},{"name":"Ausim Chaghtai","tier":4,"height":"6'0","team":"Brown","style":"Capable of 15 points or 15% from the field. Always a value pick in the last round.","ppg":2.2,"rpg":4.0,"apg":0.5,"bpg":0.0,"spg":1.2,"fgp":22.7,"tpp":50.0,"ftp":0.0,"isCaptain":false},{"name":"Alfie Davila","tier":4,"height":"5'7","team":"White","style":"Pass first, rebounder, and can defend any position. Mid range shooter.","ppg":1.0,"rpg":2.2,"apg":0.5,"bpg":0.2,"spg":0.5,"fgp":25.0,"tpp":40.0,"ftp":0.0,"isCaptain":false},{"name":"Mashood Chowdhury","tier":5,"height":"5'10","team":"Red","style":"Flashy player, good ball handler, streaky scorer.","ppg":12.0,"rpg":null,"apg":null,"bpg":null,"spg":null,"fgp":66.7,"tpp":100.0,"ftp":null,"isCaptain":false},{"name":"Danish Bashir","tier":5,"height":"5'6","team":"Grey","style":"(Traded) Solid all around player.","ppg":3.8,"rpg":2.6,"apg":0.9,"bpg":0.3,"spg":0.5,"fgp":27.3,"tpp":27.8,"ftp":50.0,"isCaptain":false},{"name":"Farhan Amin","tier":5,"height":"5'10","team":"Purple","style":"Scrappy two-way specialist with a good 3 point shot. Knock down shooter and a defensive pest.","ppg":3.6,"rpg":1.9,"apg":0.9,"bpg":0.0,"spg":0.9,"fgp":29.4,"tpp":32.0,"ftp":50.0,"isCaptain":false},{"name":"Furqan Chaudhry","tier":5,"height":"6'0","team":"Orange","style":"3 point shooter and defender (3&D).","ppg":2.6,"rpg":1.6,"apg":0.4,"bpg":0.3,"spg":0.0,"fgp":34.6,"tpp":17.6,"ftp":0.0,"isCaptain":false},{"name":"Greg Bradford","tier":5,"height":"5'9","team":"Yellow","style":"Facilitator, slasher, and lefty 3 point shooter.","ppg":2.6,"rpg":2.4,"apg":1.1,"bpg":0.0,"spg":0.8,"fgp":36.4,"tpp":33.3,"ftp":null,"isCaptain":false},{"name":"Hussein Mualla","tier":5,"height":"6'0","team":"Blue","style":"Gritty low post player, rebounder, pass first, can shoot from 3.","ppg":2.5,"rpg":2.8,"apg":0.9,"bpg":0.0,"spg":0.3,"fgp":25.7,"tpp":7.1,"ftp":14.3,"isCaptain":false},{"name":"Shobe Ali","tier":5,"height":"5'9","team":"Black","style":"Runs the open court, reliable corner 3, active defender.","ppg":2.1,"rpg":1.5,"apg":0.1,"bpg":0.4,"spg":0.6,"fgp":18.5,"tpp":17.6,"ftp":100.0,"isCaptain":false}];
+
+const CAPTAINS = ROSTER.filter(p => p.isCaptain).map(p => ({name: p.name, team: p.team}));
+
+/* ============================================================
+   AUTH — per-captain passwords + commissioner password
+   Each captain's password is firstname_wins (team's W count through wk 5).
+   ============================================================ */
+const CAPTAIN_PASSWORDS = {
+  "Fox Tariq": "fox_5",
+  "John Welsh": "john_5",
+  "Sofe Fellah": "sofe_6",
+  "David Amin": "david_2",
+  "Ahmed (AK) Khan": "ahmed_4",
+  "Sumant Bhupathiraju": "sumant_5",
+  "Oaan Rana": "oaan_5",
+  "Tahseen Almas": "tahseen_3",
+  "Gerald Mack": "gerald_0",
+  "Sheryar Akbar": "sheryar_5",
+};
+const COMMISH_PW = "GGs";
+
+/* ============================================================
+   STAT-BASED TIER SUGGESTION ENGINE
+   Combines Season 3 box-score averages with actual game-result performance
+   (who led their team in box-score categories, in wins vs losses).
+   ============================================================ */
+const CATEGORY_LIST = [
+  'Shooting', 'Off-Ball Movement', 'Shot Selection',
+  'Passing/Playmaking', 'Ball Handling', 'Rebounding',
+  'On-Ball Defense/Rotations', 'Motor/Hustle', 'Impact'
+];
+
+const CRITERIA_WEIGHTS = {
+  'Shooting': 1.3, 'Off-Ball Movement': 0.7, 'Shot Selection': 1.0,
+  'Passing/Playmaking': 1.0, 'Ball Handling': 0.8, 'Rebounding': 1.0,
+  'On-Ball Defense/Rotations': 1.2, 'Motor/Hustle': 1.0, 'Impact': 1.5,
+};
+
+// Per-player game performance (extracted from Week 1-5 box scores).
+// Each entry: how often they led their team in each stat category, scoring totals,
+// and whether their scoring leads came in team wins vs losses.
+const PERF_DATA = {"Fox Tariq":{"led_pts":8,"led_reb":1,"led_ast":3,"led_stl":3,"led_blk":5,"led_3pm":3,"team_w_led_pts":5,"team_l_led_pts":3,"pts_total":126,"pts_in_wins":89,"pts_in_losses":37,"best_game_pts":26,"appearances":8,"appearances_in_wins":5},"Mo Rana":{"led_pts":5,"led_reb":2,"led_ast":3,"led_stl":4,"led_blk":2,"led_3pm":4,"team_w_led_pts":3,"team_l_led_pts":2,"pts_total":60,"pts_in_wins":43,"pts_in_losses":17,"best_game_pts":15,"appearances":8,"appearances_in_wins":5},"Oaan Rana":{"led_pts":1,"led_reb":3,"led_ast":3,"led_stl":0,"led_blk":1,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":1,"pts_total":12,"pts_in_wins":0,"pts_in_losses":12,"best_game_pts":12,"appearances":6,"appearances_in_wins":3},"Ahmed (AK) Khan":{"led_pts":4,"led_reb":4,"led_ast":2,"led_stl":3,"led_blk":1,"led_3pm":4,"team_w_led_pts":2,"team_l_led_pts":2,"pts_total":56,"pts_in_wins":27,"pts_in_losses":29,"best_game_pts":18,"appearances":6,"appearances_in_wins":3},"Puneet Badwal":{"led_pts":2,"led_reb":2,"led_ast":2,"led_stl":4,"led_blk":3,"led_3pm":2,"team_w_led_pts":2,"team_l_led_pts":0,"pts_total":28,"pts_in_wins":28,"pts_in_losses":0,"best_game_pts":14,"appearances":7,"appearances_in_wins":4},"Naveed Kolia":{"led_pts":0,"led_reb":2,"led_ast":1,"led_stl":0,"led_blk":2,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":5,"appearances_in_wins":3},"Faizan Aslam":{"led_pts":0,"led_reb":6,"led_ast":2,"led_stl":3,"led_blk":2,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":7,"appearances_in_wins":4},"Usman Ahmad":{"led_pts":0,"led_reb":0,"led_ast":1,"led_stl":3,"led_blk":0,"led_3pm":1,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":5,"appearances_in_wins":3},"Pali Gill":{"led_pts":0,"led_reb":0,"led_ast":1,"led_stl":0,"led_blk":0,"led_3pm":4,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":4,"appearances_in_wins":2},"Shobe Ali":{"led_pts":0,"led_reb":1,"led_ast":0,"led_stl":2,"led_blk":1,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":4,"appearances_in_wins":2},"David Amin":{"led_pts":5,"led_reb":2,"led_ast":5,"led_stl":1,"led_blk":1,"led_3pm":3,"team_w_led_pts":1,"team_l_led_pts":4,"pts_total":65,"pts_in_wins":14,"pts_in_losses":51,"best_game_pts":20,"appearances":6,"appearances_in_wins":1},"Sam Abdi":{"led_pts":2,"led_reb":1,"led_ast":1,"led_stl":1,"led_blk":2,"led_3pm":3,"team_w_led_pts":1,"team_l_led_pts":1,"pts_total":29,"pts_in_wins":15,"pts_in_losses":14,"best_game_pts":15,"appearances":6,"appearances_in_wins":2},"Tahseen Almas":{"led_pts":7,"led_reb":5,"led_ast":1,"led_stl":1,"led_blk":0,"led_3pm":3,"team_w_led_pts":3,"team_l_led_pts":4,"pts_total":119,"pts_in_wins":51,"pts_in_losses":68,"best_game_pts":23,"appearances":7,"appearances_in_wins":3},"Matt Bradley":{"led_pts":0,"led_reb":0,"led_ast":4,"led_stl":1,"led_blk":0,"led_3pm":2,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":4,"appearances_in_wins":2},"Aaron Jawad":{"led_pts":0,"led_reb":1,"led_ast":1,"led_stl":3,"led_blk":0,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":5,"appearances_in_wins":2},"Philip McMahan":{"led_pts":0,"led_reb":5,"led_ast":1,"led_stl":3,"led_blk":1,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":6,"appearances_in_wins":0},"Farhan Amin":{"led_pts":0,"led_reb":0,"led_ast":1,"led_stl":3,"led_blk":0,"led_3pm":4,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":7,"appearances_in_wins":0},"Gerald Mack":{"led_pts":1,"led_reb":3,"led_ast":2,"led_stl":2,"led_blk":3,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":1,"pts_total":9,"pts_in_wins":0,"pts_in_losses":9,"best_game_pts":9,"appearances":6,"appearances_in_wins":0},"Farhan Chughtai":{"led_pts":1,"led_reb":0,"led_ast":0,"led_stl":0,"led_blk":0,"led_3pm":2,"team_w_led_pts":0,"team_l_led_pts":1,"pts_total":8,"pts_in_wins":0,"pts_in_losses":8,"best_game_pts":8,"appearances":3,"appearances_in_wins":0},"Yohan Yazdi":{"led_pts":0,"led_reb":3,"led_ast":0,"led_stl":2,"led_blk":1,"led_3pm":1,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":5,"appearances_in_wins":0},"Omair Uddin":{"led_pts":0,"led_reb":6,"led_ast":0,"led_stl":0,"led_blk":2,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":6,"appearances_in_wins":3},"Bajj Bhattarai":{"led_pts":0,"led_reb":1,"led_ast":2,"led_stl":1,"led_blk":0,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":3,"appearances_in_wins":3},"Eugene Arthur":{"led_pts":2,"led_reb":0,"led_ast":2,"led_stl":2,"led_blk":0,"led_3pm":2,"team_w_led_pts":0,"team_l_led_pts":2,"pts_total":16,"pts_in_wins":0,"pts_in_losses":16,"best_game_pts":9,"appearances":4,"appearances_in_wins":0},"Ausim Chaghtai":{"led_pts":1,"led_reb":2,"led_ast":1,"led_stl":3,"led_blk":0,"led_3pm":1,"team_w_led_pts":1,"team_l_led_pts":0,"pts_total":9,"pts_in_wins":9,"pts_in_losses":0,"best_game_pts":9,"appearances":5,"appearances_in_wins":3},"Sheryar Akbar":{"led_pts":1,"led_reb":1,"led_ast":6,"led_stl":3,"led_blk":3,"led_3pm":3,"team_w_led_pts":0,"team_l_led_pts":1,"pts_total":9,"pts_in_wins":0,"pts_in_losses":9,"best_game_pts":9,"appearances":7,"appearances_in_wins":5},"Nikhil Kamineni":{"led_pts":0,"led_reb":3,"led_ast":0,"led_stl":0,"led_blk":0,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":3,"appearances_in_wins":2},"Sofe Fellah":{"led_pts":6,"led_reb":0,"led_ast":3,"led_stl":2,"led_blk":5,"led_3pm":7,"team_w_led_pts":5,"team_l_led_pts":1,"pts_total":85,"pts_in_wins":76,"pts_in_losses":9,"best_game_pts":19,"appearances":8,"appearances_in_wins":6},"Waleed Ershad":{"led_pts":2,"led_reb":3,"led_ast":0,"led_stl":3,"led_blk":0,"led_3pm":0,"team_w_led_pts":1,"team_l_led_pts":1,"pts_total":31,"pts_in_wins":17,"pts_in_losses":14,"best_game_pts":17,"appearances":6,"appearances_in_wins":4},"Abe Faridi":{"led_pts":4,"led_reb":1,"led_ast":1,"led_stl":1,"led_blk":2,"led_3pm":4,"team_w_led_pts":4,"team_l_led_pts":0,"pts_total":60,"pts_in_wins":60,"pts_in_losses":0,"best_game_pts":24,"appearances":6,"appearances_in_wins":5},"Matt Le Plan":{"led_pts":2,"led_reb":1,"led_ast":0,"led_stl":2,"led_blk":0,"led_3pm":0,"team_w_led_pts":1,"team_l_led_pts":1,"pts_total":19,"pts_in_wins":12,"pts_in_losses":7,"best_game_pts":12,"appearances":4,"appearances_in_wins":3},"Owais (OJ) Javed":{"led_pts":0,"led_reb":0,"led_ast":1,"led_stl":0,"led_blk":1,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":2,"appearances_in_wins":1},"Matt Harrison":{"led_pts":1,"led_reb":1,"led_ast":2,"led_stl":3,"led_blk":1,"led_3pm":1,"team_w_led_pts":0,"team_l_led_pts":1,"pts_total":9,"pts_in_wins":0,"pts_in_losses":9,"best_game_pts":9,"appearances":5,"appearances_in_wins":1},"John Welsh":{"led_pts":5,"led_reb":0,"led_ast":5,"led_stl":1,"led_blk":0,"led_3pm":3,"team_w_led_pts":3,"team_l_led_pts":2,"pts_total":76,"pts_in_wins":55,"pts_in_losses":21,"best_game_pts":21,"appearances":7,"appearances_in_wins":4},"Khaled Abdulla":{"led_pts":0,"led_reb":2,"led_ast":1,"led_stl":1,"led_blk":3,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":5,"appearances_in_wins":4},"Abdullah Rana":{"led_pts":1,"led_reb":0,"led_ast":0,"led_stl":3,"led_blk":1,"led_3pm":3,"team_w_led_pts":1,"team_l_led_pts":0,"pts_total":16,"pts_in_wins":16,"pts_in_losses":0,"best_game_pts":16,"appearances":5,"appearances_in_wins":3},"Manveer Johar":{"led_pts":1,"led_reb":0,"led_ast":0,"led_stl":0,"led_blk":2,"led_3pm":1,"team_w_led_pts":1,"team_l_led_pts":0,"pts_total":9,"pts_in_wins":9,"pts_in_losses":0,"best_game_pts":9,"appearances":3,"appearances_in_wins":3},"Alfie Davila":{"led_pts":0,"led_reb":0,"led_ast":1,"led_stl":2,"led_blk":1,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":3,"appearances_in_wins":3},"Zain Khan":{"led_pts":0,"led_reb":1,"led_ast":2,"led_stl":0,"led_blk":1,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":4,"appearances_in_wins":3},"Hammad Shakeel":{"led_pts":5,"led_reb":0,"led_ast":2,"led_stl":0,"led_blk":1,"led_3pm":1,"team_w_led_pts":0,"team_l_led_pts":5,"pts_total":55,"pts_in_wins":0,"pts_in_losses":55,"best_game_pts":14,"appearances":6,"appearances_in_wins":0},"Furqan Chaudhry":{"led_pts":0,"led_reb":0,"led_ast":0,"led_stl":0,"led_blk":1,"led_3pm":1,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":2,"appearances_in_wins":2},"Jawaid Zahory":{"led_pts":0,"led_reb":3,"led_ast":2,"led_stl":0,"led_blk":0,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":4,"appearances_in_wins":3},"Veshal Gondal":{"led_pts":1,"led_reb":4,"led_ast":1,"led_stl":1,"led_blk":1,"led_3pm":0,"team_w_led_pts":1,"team_l_led_pts":0,"pts_total":13,"pts_in_wins":13,"pts_in_losses":0,"best_game_pts":13,"appearances":6,"appearances_in_wins":5},"Hussein Mualla":{"led_pts":0,"led_reb":0,"led_ast":1,"led_stl":1,"led_blk":0,"led_3pm":1,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":2,"appearances_in_wins":1},"Greg Bradford":{"led_pts":0,"led_reb":1,"led_ast":0,"led_stl":0,"led_blk":0,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":1,"appearances_in_wins":0},"Danish Bashir":{"led_pts":1,"led_reb":1,"led_ast":0,"led_stl":1,"led_blk":1,"led_3pm":1,"team_w_led_pts":0,"team_l_led_pts":1,"pts_total":18,"pts_in_wins":0,"pts_in_losses":18,"best_game_pts":18,"appearances":3,"appearances_in_wins":1},"Sumant Bhupathiraju":{"led_pts":4,"led_reb":2,"led_ast":1,"led_stl":1,"led_blk":0,"led_3pm":1,"team_w_led_pts":2,"team_l_led_pts":2,"pts_total":39,"pts_in_wins":25,"pts_in_losses":14,"best_game_pts":17,"appearances":4,"appearances_in_wins":2},"Ricky Choeung":{"led_pts":0,"led_reb":1,"led_ast":0,"led_stl":0,"led_blk":0,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":1,"appearances_in_wins":1},"Mohammed Hasnain":{"led_pts":0,"led_reb":1,"led_ast":0,"led_stl":1,"led_blk":0,"led_3pm":0,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":1,"appearances_in_wins":1},"Mashood Chowdhury":{"led_pts":0,"led_reb":0,"led_ast":0,"led_stl":0,"led_blk":0,"led_3pm":1,"team_w_led_pts":0,"team_l_led_pts":0,"pts_total":0,"pts_in_wins":0,"pts_in_losses":0,"best_game_pts":0,"appearances":1,"appearances_in_wins":0}};
+
+const TEAM_RECORDS = {"Red":{"W":5,"L":3,"pf":254,"pa":239},"Brown":{"W":5,"L":3,"pf":234,"pa":220},"Green":{"W":4,"L":4,"pf":243,"pa":265},"Orange":{"W":5,"L":3,"pf":229,"pa":237},"Black":{"W":5,"L":3,"pf":231,"pa":210},"Yellow":{"W":2,"L":6,"pf":275,"pa":295},"Grey":{"W":3,"L":5,"pf":265,"pa":253},"Purple":{"W":0,"L":8,"pf":226,"pa":329},"White":{"W":6,"L":2,"pf":272,"pa":221},"Blue":{"W":5,"L":3,"pf":270,"pa":230}};
+
+function parseStats(p){
+  const num = (s) => { if(s===null||s===undefined||s==='') return 0; const n=parseFloat(String(s).replace('%','')); return isNaN(n)?0:n; };
+  return {
+    ppg: num(p.ppg), rpg: num(p.rpg), apg: num(p.apg),
+    bpg: num(p.bpg), spg: num(p.spg),
+    fgp: num(p.fgp), tpp: num(p.tpp), ftp: num(p.ftp)
+  };
+}
+
+function scoreCriteria(p){
+  const s = parseStats(p);
+  const style = (p.style || '').toLowerCase();
+  const has = (...kws) => kws.some(k => style.includes(k));
+  const perf = PERF_DATA[p.name];
+
+  const vol = Math.min(s.ppg / 10, 1.5);
+  const shooting = (s.fgp * 0.45 + s.tpp * 0.35 + s.ftp * 0.20) * (0.6 + 0.4 * vol);
+
+  let offball;
+  if (s.apg < 1.5 && s.fgp > 38 && s.ppg > 3) {
+    offball = Math.min(60 + s.fgp * 0.4 + s.tpp * 0.3, 100);
+  } else {
+    offball = Math.min(40 + s.fgp * 0.4 + s.tpp * 0.2, 100);
+  }
+
+  let shotsel = s.fgp + 0.5 * Math.max(0, s.tpp - 25);
+  if (s.ppg > 5 && s.fgp < 35) shotsel *= 0.7;
+
+  const passing = Math.min(s.apg * 30, 100);
+
+  let handling = Math.min(s.apg * 25 + s.spg * 20, 100);
+  if (has('point guard','ball handler',' pg','pg,','primary')) handling = Math.min(handling * 1.2, 100);
+
+  const rebounding = Math.min(s.rpg * 15, 100);
+
+  let defense = Math.min(s.spg * 25 + s.bpg * 30, 100);
+  if (has('defen','lock down','disrupt')) defense = Math.min(defense * 1.2, 100);
+
+  let motor = Math.min((s.spg + s.bpg) * 20 + s.rpg * 8, 100);
+  if (has('hustle','motor','grit','scrappy','active')) motor = Math.min(motor * 1.2, 100);
+
+  let impact = Math.min(s.ppg * 4 + s.rpg * 4 + s.apg * 8 + s.spg * 8 + s.bpg * 8, 100);
+
+  // ---- Game-results boosts/penalties ----
+  if (perf) {
+    // Boost for leading scoring in actual team wins
+    if (perf.team_w_led_pts >= 3) impact = Math.min(impact + 15, 100);
+    else if (perf.team_w_led_pts >= 1) impact = Math.min(impact + 8, 100);
+
+    // Versatility — led in many different categories
+    const distinctCats = ['pts','reb','ast','stl','blk','3pm'].filter(k => perf['led_'+k] > 0).length;
+    if (distinctCats >= 5) {
+      motor = Math.min(motor + 15, 100);
+      impact = Math.min(impact + 10, 100);
+    } else if (distinctCats >= 4) {
+      motor = Math.min(motor + 8, 100);
+      impact = Math.min(impact + 5, 100);
+    }
+
+    // Penalty — high scoring volume but all in losses
+    if (perf.led_pts >= 3 && perf.team_w_led_pts === 0) {
+      impact = Math.max(impact - 12, 0);
+      shotsel = Math.max(shotsel - 10, 0);
+    }
+  }
+
+  return {
+    'Shooting': +shooting.toFixed(1),
+    'Off-Ball Movement': +offball.toFixed(1),
+    'Shot Selection': +shotsel.toFixed(1),
+    'Passing/Playmaking': +passing.toFixed(1),
+    'Ball Handling': +handling.toFixed(1),
+    'Rebounding': +rebounding.toFixed(1),
+    'On-Ball Defense/Rotations': +defense.toFixed(1),
+    'Motor/Hustle': +motor.toFixed(1),
+    'Impact': +impact.toFixed(1),
+  };
+}
+
+function compositeScore(p){
+  const cs = scoreCriteria(p);
+  let total = 0, weight = 0;
+  for (const k of CATEGORY_LIST){
+    total += cs[k] * CRITERIA_WEIGHTS[k];
+    weight += CRITERIA_WEIGHTS[k];
+  }
+  return total / weight;
+}
+
+// Build a human-readable reason for each suggestion
+function buildReason(p, sugTier, criteria){
+  const perf = PERF_DATA[p.name];
+  const parts = [];
+
+  // Lead with the tier movement summary
+  if (p.isCaptain) {
+    return `Captains are locked at T1 — not eligible for re-tiering. Reference score shown.`;
+  }
+  if (sugTier < p.tier) parts.push(`Suggested promotion from T${p.tier} to T${sugTier}.`);
+  else if (sugTier > p.tier) parts.push(`Suggested demotion from T${p.tier} to T${sugTier}.`);
+  else parts.push(`Hold at T${p.tier}.`);
+
+  // Game-results narrative — the strongest signal
+  if (perf) {
+    const ledPts = perf.led_pts;
+    const ledPtsW = perf.team_w_led_pts;
+    const distinctCats = ['pts','reb','ast','stl','blk','3pm'].filter(k => perf['led_'+k] > 0).length;
+
+    if (ledPts >= 4 && ledPtsW >= ledPts * 0.7) {
+      parts.push(`Led ${p.team} in scoring ${ledPts} times, with ${ledPtsW} of those in wins — translates volume into team success.`);
+    } else if (ledPts >= 4 && ledPtsW <= 1) {
+      parts.push(`Led team in scoring ${ledPts} times but only ${ledPtsW} in a win — volume isn't moving the needle.`);
+    } else if (ledPts >= 2 && ledPtsW >= 2) {
+      parts.push(`Carried ${p.team} in ${ledPtsW} of ${ledPts} scoring leads — a reliable closer.`);
+    } else if (ledPts === 0 && perf.appearances >= 3) {
+      parts.push(`Featured as a category leader ${perf.appearances} times without ever leading the team in scoring — fills a complementary role.`);
+    }
+
+    if (distinctCats >= 5) {
+      const catNames = ['pts','reb','ast','stl','blk','3pm']
+        .filter(k => perf['led_'+k] > 0)
+        .map(k => k.toUpperCase().replace('3PM','3PM'))
+        .join(', ');
+      parts.push(`Showed up across the box score — led ${p.team} in ${distinctCats} different categories this season (${catNames}).`);
+    } else if (distinctCats >= 3) {
+      parts.push(`Versatile contributor — led team in ${distinctCats} different stat categories.`);
+    }
+
+    if (perf.best_game_pts >= 20) {
+      parts.push(`Peak performance: ${perf.best_game_pts}-point game.`);
+    }
+  } else {
+    parts.push(`Has not appeared as a team leader in any box-score category through Week 5 — limited statistical impact so far.`);
+  }
+
+  // Criteria highlights
+  const topCats = Object.entries(criteria).filter(([k,v]) => v >= 50).sort((a,b) => b[1]-a[1]).slice(0,3);
+  const weakCats = Object.entries(criteria).filter(([k,v]) => v < 30).sort((a,b) => a[1]-b[1]).slice(0,2);
+  if (topCats.length){
+    parts.push(`Strong profile in ${topCats.map(c=>c[0]).join(', ')}.`);
+  }
+  if (weakCats.length && (sugTier === 5 || sugTier > p.tier)){
+    parts.push(`Below league average in ${weakCats.map(c=>c[0]).join(', ')}.`);
+  }
+
+  return parts.join(' ');
+}
+
+const SUGGESTIONS = (function(){
+  const nonCaps = ROSTER.filter(p => !p.isCaptain);
+  const scored = nonCaps.map(p => ({ p, score: compositeScore(p) })).sort((a,b) => b.score - a.score);
+  const n = scored.length;
+  const cutoffs = [
+    [Math.round(n * 0.25), 2],
+    [Math.round(n * 0.50), 3],
+    [Math.round(n * 0.85), 4],
+    [n, 5],
+  ];
+  const map = {};
+  scored.forEach((entry, i) => {
+    let sug = 5;
+    for (const [cut, tier] of cutoffs){ if (i < cut){ sug = tier; break; } }
+    const criteria = scoreCriteria(entry.p);
+    map[entry.p.name] = {
+      suggested: sug, score: +entry.score.toFixed(1), rank: i + 1, total: n,
+      criteria, reason: buildReason(entry.p, sug, criteria)
+    };
+  });
+  ROSTER.filter(p => p.isCaptain).forEach(p => {
+    const criteria = scoreCriteria(p);
+    map[p.name] = {
+      suggested: 1, score: +compositeScore(p).toFixed(1), rank: null, total: n,
+      criteria, reason: buildReason(p, 1, criteria), locked: true
+    };
+  });
+  return map;
+})();
+
+/* ============================================================
+   STORAGE LAYER — shared across all captains
+   ============================================================ */
+async function sGet(key){
+  try { const r = await window.storage.get(key, true); return r ? JSON.parse(r.value) : null; }
+  catch(e){ return null; }
+}
+async function sSet(key, value){
+  try { await window.storage.set(key, JSON.stringify(value), true); return true; }
+  catch(e){ console.error('storage set failed', e); return false; }
+}
+async function sDel(key){
+  try { await window.storage.delete(key, true); return true; }
+  catch(e){ return false; }
+}
+
+/* ============================================================
+   APP STATE
+   ============================================================ */
+const state = {
+  currentCaptain: null,
+  view: 'login',           // login | vote | wait | report | final | dashboard
+  votes: {},
+  filter: 'all',
+  search: '',
+  finalDecisions: null,
+  isCommish: false,
+  dashFilter: { tier:'all', sugTier:'all', team:'all', move:'all' },
+  dashSort: 'score-desc',
+  dashSearch: '',
+  dashExpanded: null,
+  returnFrom: null,
+};
+
+async function loadAll(){
+  state.votes = (await sGet('votes')) || {};
+  state.finalDecisions = await sGet('final-decisions');
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function tierFromVotes(playerName, currentTier, isCaptain){
+  if (isCaptain) {
+    return { counts: {1:CAPTAINS.length,2:0,3:0,4:0,5:0}, winner: 1, total: 0, isChange: false, locked: true };
+  }
+  const counts = {1:0,2:0,3:0,4:0,5:0};
+  let total = 0;
+  Object.values(state.votes).forEach(v => {
+    if (!v.submitted) return;
+    const t = v.picks[playerName];
+    if (t) { counts[t]++; total++; }
+  });
+  let winner = currentTier;
+  let max = 0;
+  let tied = false;
+  for (let t=1; t<=5; t++){
+    if (counts[t] > max){ max = counts[t]; winner = t; tied = false; }
+    else if (counts[t] === max && t !== winner && max > 0){ tied = true; }
+  }
+  if (tied) winner = currentTier;
+  return { counts, winner, total, isChange: winner !== currentTier };
+}
+
+function allCaptainsSubmitted(){
+  return CAPTAINS.every(c => state.votes[c.name] && state.votes[c.name].submitted);
+}
+function submittedCount(){
+  return CAPTAINS.filter(c => state.votes[c.name] && state.votes[c.name].submitted).length;
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function initials(name){ return name.split(/\s+/).filter(p=>p && p[0]).map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
+
+function toast(msg, kind=''){
+  const t = document.getElementById('toast');
+  t.className = 'toast' + (kind ? ' ' + kind : '');
+  t.innerHTML = (kind === 'success' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ' : '') + escapeHtml(msg);
+  setTimeout(() => t.classList.add('show'), 10);
+  clearTimeout(toast._h);
+  toast._h = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+function modal({title, body, actions}){
+  const bg = document.getElementById('modalBg');
+  const m = document.getElementById('modal');
+  m.innerHTML = `
+    <h3>${escapeHtml(title)}</h3>
+    <div>${body}</div>
+    <div class="actions">${actions}</div>
+  `;
+  bg.classList.add('show');
+  return { close: () => bg.classList.remove('show') };
+}
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+function renderNavActions(){
+  const el = document.getElementById('navActions');
+  if (state.view === 'login' || !state.currentCaptain){
+    el.innerHTML = state.isCommish 
+      ? `<span class="nav-chip user"><span class="dot"></span> Commissioner</span>
+         <button class="btn sm" id="signOutBtn">Sign out</button>`
+      : '';
+    const so = document.getElementById('signOutBtn');
+    if (so) so.onclick = () => { state.isCommish = false; render(); };
+    return;
+  }
+  const captainTeam = CAPTAINS.find(c => c.name === state.currentCaptain)?.team || '';
+  el.innerHTML = `
+    <span class="nav-chip user">
+      <span class="team-dot team-${captainTeam}" style="width:8px;height:8px"></span>
+      ${escapeHtml(state.currentCaptain)} · ${escapeHtml(captainTeam)}
+    </span>
+    <button class="btn sm" id="signOutBtn">Sign out</button>
+  `;
+  document.getElementById('signOutBtn').onclick = () => {
+    state.currentCaptain = null;
+    state.view = 'login';
+    render();
+  };
+}
+
+function renderLogin(){
+  const app = document.getElementById('app');
+  const done = submittedCount();
+  app.innerHTML = `
+    <div class="hero">
+      <h1>Mid-Season Re-Tier Assessment</h1>
+      <p>Each captain reviews all 50 players and votes on tier placement. The commissioner approves final changes once everyone has submitted.</p>
+    </div>
+
+    <div class="captain-picker">
+      <div class="captain-picker-head">
+        <h2>Select your captain profile</h2>
+        <div class="progress-text"><strong>${done}</strong> of ${CAPTAINS.length} submitted${state.finalDecisions ? ' · <span style="color:var(--success);font-weight:600">Ballot closed</span>' : ''}</div>
+      </div>
+      <div class="captain-grid" id="captainGrid"></div>
+      <div class="login-secondary">
+        <button class="btn" id="dashLogin">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          View stat dashboard
+        </button>
+        <button class="btn" id="commishLogin">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Commissioner access
+        </button>
+      </div>
+    </div>
+  `;
+  const grid = document.getElementById('captainGrid');
+  CAPTAINS.forEach(c => {
+    const sub = state.votes[c.name]?.submitted;
+    const btn = document.createElement('button');
+    btn.className = 'captain-card' + (sub ? ' submitted' : '');
+    btn.innerHTML = `
+      <div class="captain-avatar team-${c.team}">${initials(c.name)}</div>
+      <div class="captain-info">
+        <div class="name">${escapeHtml(c.name)}</div>
+        <div class="team">Team ${escapeHtml(c.team)}</div>
+      </div>
+      <div class="captain-status">${sub 
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Submitted' 
+        : 'Pending'}</div>
+    `;
+    btn.onclick = () => promptCaptainLogin(c.name);
+    grid.appendChild(btn);
+  });
+  document.getElementById('commishLogin').onclick = () => promptCommish();
+  document.getElementById('dashLogin').onclick = () => { state.view = 'dashboard'; render(); };
+}
+
+function enterCaptainView(name){
+  state.currentCaptain = name;
+  if (state.finalDecisions) {
+    state.view = 'report';
+  } else if (state.votes[name]?.submitted) {
+    state.view = 'wait';
+  } else {
+    state.view = 'vote';
+    if (!state.votes[name]) {
+      state.votes[name] = { submitted: false, picks: {} };
+      ROSTER.forEach(p => {
+        state.votes[name].picks[p.name] = p.isCaptain ? 1 : p.tier;
+      });
+    }
+  }
+  render();
+}
+
+function promptCaptainLogin(captainName){
+  const cap = CAPTAINS.find(c => c.name === captainName);
+  const m = modal({
+    title: '',
+    body: `
+      <div class="pw-modal-content" style="padding:0">
+        <div class="avatar-lg team-${cap.team}">${initials(captainName)}</div>
+        <h3>Welcome back, ${escapeHtml(captainName.split(' ')[0])}</h3>
+        <div class="sub-name">Team ${escapeHtml(cap.team)} captain</div>
+        <div class="pw-input-wrap">
+          <input id="pwInput" class="pw-input" type="password" placeholder="Enter your password" autocomplete="off" />
+          <button class="pw-toggle" id="pwToggle" type="button">Show</button>
+        </div>
+        <div class="pw-msg" id="pwMsg"></div>
+      </div>
+    `,
+    actions: `
+      <button class="btn" id="pwCancel">Cancel</button>
+      <button class="btn primary" id="pwSubmit">Continue</button>
+    `
+  });
+  const input = document.getElementById('pwInput');
+  setTimeout(()=>input.focus(), 50);
+  const tryAuth = () => {
+    const entered = input.value.trim();
+    if (entered === CAPTAIN_PASSWORDS[captainName]) {
+      m.close();
+      enterCaptainView(captainName);
+    } else {
+      document.getElementById('pwMsg').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> That password doesn\'t match';
+      input.value = '';
+      input.focus();
+    }
+  };
+  document.getElementById('pwToggle').onclick = () => {
+    if (input.type === 'password') { input.type = 'text'; document.getElementById('pwToggle').textContent = 'Hide'; }
+    else { input.type = 'password'; document.getElementById('pwToggle').textContent = 'Show'; }
+  };
+  document.getElementById('pwSubmit').onclick = tryAuth;
+  document.getElementById('pwCancel').onclick = () => m.close();
+  input.onkeydown = (e) => { if (e.key === 'Enter') tryAuth(); };
+}
+
+function promptCommish(onSuccess){
+  const m = modal({
+    title: '',
+    body: `
+      <div class="pw-modal-content" style="padding:0">
+        <div class="avatar-lg" style="background:linear-gradient(135deg, #1f1f1f, #444);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3>Commissioner access</h3>
+        <div class="sub-name">Required to finalize tier decisions</div>
+        <div class="pw-input-wrap">
+          <input id="pwInput" class="pw-input" type="password" placeholder="Enter commissioner password" autocomplete="off" />
+          <button class="pw-toggle" id="pwToggle" type="button">Show</button>
+        </div>
+        <div class="pw-msg" id="pwMsg"></div>
+      </div>
+    `,
+    actions: `
+      <button class="btn" id="pwCancel">Cancel</button>
+      <button class="btn primary" id="pwSubmit">Authenticate</button>
+    `
+  });
+  const input = document.getElementById('pwInput');
+  setTimeout(()=>input.focus(), 50);
+  const tryAuth = () => {
+    if (input.value === COMMISH_PW) {
+      state.isCommish = true;
+      m.close();
+      if (onSuccess) onSuccess();
+      else { state.view = 'report'; render(); }
+    } else {
+      document.getElementById('pwMsg').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Incorrect password';
+      input.value = '';
+      input.focus();
+    }
+  };
+  document.getElementById('pwToggle').onclick = () => {
+    if (input.type === 'password') { input.type = 'text'; document.getElementById('pwToggle').textContent = 'Hide'; }
+    else { input.type = 'password'; document.getElementById('pwToggle').textContent = 'Show'; }
+  };
+  document.getElementById('pwSubmit').onclick = tryAuth;
+  document.getElementById('pwCancel').onclick = () => m.close();
+  input.onkeydown = (e) => { if (e.key === 'Enter') tryAuth(); };
+}
+
+function renderVote(){
+  const app = document.getElementById('app');
+  const cap = state.currentCaptain;
+  const myVote = state.votes[cap];
+  const done = submittedCount();
+  const changed = ROSTER.filter(p => !p.isCaptain && myVote.picks[p.name] !== p.tier).length;
+  const pct = (done / CAPTAINS.length) * 100;
+
+  app.innerHTML = `
+    <div class="progress-banner">
+      <div class="pb-text">
+        <h3>Cast your re-tier ballot</h3>
+        <p>Click any tier (T1–T5) to assign. Drafts auto-save. Submit when ready.</p>
+      </div>
+      <div class="progress-track">
+        <div class="progress-num"><strong>${done}</strong><span class="total">/${CAPTAINS.length}</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <div>
+        <strong>How it works.</strong> Tap a tier button to revise. The dashed outline shows the current tier; the filled button is your pick. Captains are <strong>locked at Tier 1</strong>. Changes save as drafts — submit when ready, and you can revise anytime until the commissioner closes voting.
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="group">
+        <button class="tab ${state.filter==='all'?'active':''}" data-f="all">All 50</button>
+        <button class="tab ${state.filter==='changed'?'active':''}" data-f="changed">My changes (${changed})</button>
+      </div>
+      <div class="divider"></div>
+      <div class="group">
+        ${[1,2,3,4,5].map(t => `<button class="tab ${state.filter==='t'+t?'active':''}" data-f="t${t}">T${t}</button>`).join('')}
+      </div>
+      <input type="search" class="search-input" id="searchBox" placeholder="Search players or teams…" value="${escapeHtml(state.search)}" />
+      <button class="btn sm" id="openDash">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Stat dashboard
+      </button>
+    </div>
+
+    <div class="player-list" id="roster"></div>
+
+    <div class="submit-bar">
+      <div class="summary">
+        <strong>${done}/${CAPTAINS.length}</strong> captains submitted · 
+        <strong>${changed}</strong> tier change${changed===1?'':'s'} pending on your ballot
+      </div>
+      <div class="actions">
+        <button class="btn" id="resetBtn">Reset to current</button>
+        <button class="btn primary" id="submitBtn">
+          Submit ballot
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+      </div>
+    </div>
+  `;
+
+  renderRosterRows();
+
+  document.querySelectorAll('.toolbar .tab').forEach(b => {
+    b.onclick = () => { state.filter = b.dataset.f; renderVote(); };
+  });
+  document.getElementById('searchBox').oninput = (e) => {
+    state.search = e.target.value;
+    renderRosterRows();
+  };
+  document.getElementById('resetBtn').onclick = () => {
+    const m = modal({
+      title: 'Reset ballot?',
+      body: '<p>This will clear all your tier changes and restore current tiers for all players. Your submitted status will not change.</p>',
+      actions: `
+        <button class="btn" id="cancelReset">Cancel</button>
+        <button class="btn primary" id="confirmReset">Reset</button>
+      `
+    });
+    document.getElementById('cancelReset').onclick = () => m.close();
+    document.getElementById('confirmReset').onclick = async () => {
+      ROSTER.forEach(p => myVote.picks[p.name] = p.isCaptain ? 1 : p.tier);
+      await sSet('votes', state.votes);
+      m.close();
+      toast('Ballot reset', 'success');
+      render();
+    };
+  };
+  document.getElementById('submitBtn').onclick = () => confirmSubmit();
+  document.getElementById('openDash').onclick = () => { state.returnFrom = 'vote'; state.view = 'dashboard'; render(); };
+}
+
+function renderRosterRows(){
+  const roster = document.getElementById('roster');
+  const cap = state.currentCaptain;
+  const myVote = state.votes[cap];
+  let players = ROSTER.slice();
+  if (state.filter === 'changed') players = players.filter(p => !p.isCaptain && myVote.picks[p.name] !== p.tier);
+  else if (/^t[1-5]$/.test(state.filter)) {
+    const t = parseInt(state.filter[1]);
+    players = players.filter(p => p.tier === t);
+  }
+  const q = state.search.trim().toLowerCase();
+  if (q) players = players.filter(p => p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q));
+  players.sort((a,b) => a.tier - b.tier || a.name.localeCompare(b.name));
+
+  if (players.length === 0){
+    roster.innerHTML = `<div style="padding:48px;text-align:center;color:var(--muted);font-size:14px">No players match your filters.</div>`;
+    return;
+  }
+
+  roster.innerHTML = players.map((p, i) => {
+    const myPick = myVote.picks[p.name];
+    const changed = myPick !== p.tier;
+    const isOwnPlayer = p.team === CAPTAINS.find(c => c.name === cap)?.team;
+    const isLocked = p.isCaptain;
+    return `
+      <div class="player-row ${changed && !isLocked ? 'changed' : ''} ${isLocked ? 'locked-row' : ''}" data-player="${escapeHtml(p.name)}">
+        <div class="row-idx">${String(i+1).padStart(2,'0')}</div>
+        <div class="player-name">
+          <div class="pn-line">
+            ${escapeHtml(p.name)}
+            ${p.isCaptain ? '<span class="badge capt">Captain</span>' : ''}
+            ${isOwnPlayer && !p.isCaptain ? '<span class="badge myteam">My team</span>' : ''}
+          </div>
+          ${p.style && p.style !== 'Captain' ? `<div class="pn-style">${escapeHtml(p.style)}</div>` : ''}
+        </div>
+        <div class="team-pill"><span class="team-dot team-${p.team}"></span> ${escapeHtml(p.team)}</div>
+        <div class="ppg-cell"><span class="num">${p.ppg ?? '—'}</span><span class="lbl">PPG</span></div>
+        <div></div>
+        <div class="tier-selector">
+          ${isLocked
+            ? `<span class="lock-chip">
+                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                 Locked · T1
+               </span>`
+            : `<span class="tier-current-label">Now: <strong>T${p.tier}</strong></span>
+               ${[1,2,3,4,5].map(t => `
+                 <button class="tier-btn ${myPick === t ? 'selected' : ''} ${p.tier === t ? 'is-current' : ''}" 
+                         data-tier="${t}" 
+                         data-player="${escapeHtml(p.name)}">T${t}</button>
+               `).join('')}`
+          }
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  roster.querySelectorAll('.tier-btn').forEach(btn => {
+    btn.onclick = async () => {
+      const player = btn.dataset.player;
+      const tier = parseInt(btn.dataset.tier);
+      state.votes[cap].picks[player] = tier;
+      await sSet('votes', state.votes);
+      renderRosterRows();
+      const ch = ROSTER.filter(p => !p.isCaptain && state.votes[cap].picks[p.name] !== p.tier).length;
+      const sum = document.querySelector('.submit-bar .summary');
+      if (sum) sum.innerHTML = `<strong>${submittedCount()}/${CAPTAINS.length}</strong> captains submitted · <strong>${ch}</strong> tier change${ch===1?'':'s'} pending on your ballot`;
+      const tabChanged = document.querySelector('.toolbar .tab[data-f="changed"]');
+      if (tabChanged) tabChanged.textContent = `My changes (${ch})`;
+    };
+  });
+}
+
+function confirmSubmit(){
+  const cap = state.currentCaptain;
+  const myVote = state.votes[cap];
+  const changes = ROSTER.filter(p => !p.isCaptain && myVote.picks[p.name] !== p.tier);
+  const changeList = changes.length === 0
+    ? '<p style="color:var(--muted);font-style:italic">You\'re submitting a ballot with no tier changes — confirming the current tiers for all 50 players.</p>'
+    : `<p>You\'re proposing <strong>${changes.length}</strong> tier change${changes.length===1?'':'s'}:</p>
+       <div style="max-height:240px;overflow:auto;padding:12px 16px;background:var(--surface-tint);border-radius:var(--radius);margin-top:10px;display:flex;flex-direction:column;gap:6px;font-size:13px">
+         ${changes.map(p => `
+           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+             <span>${escapeHtml(p.name)}</span>
+             <span style="display:flex;align-items:center;gap:6px"><span class="tier-pill" data-tier="${p.tier}" style="min-width:32px;height:24px;font-size:11px">T${p.tier}</span> → <span class="tier-pill" data-tier="${myVote.picks[p.name]}" style="min-width:32px;height:24px;font-size:11px">T${myVote.picks[p.name]}</span></span>
+           </div>
+         `).join('')}
+       </div>`;
+  const m = modal({
+    title: 'Submit your ballot?',
+    body: changeList + '<p style="margin-top:14px;font-size:13px;color:var(--muted)">You can return to revise this until the commissioner closes voting.</p>',
+    actions: `
+      <button class="btn" id="cancelSub">Not yet</button>
+      <button class="btn primary" id="confirmSub">Submit ballot</button>
+    `
+  });
+  document.getElementById('cancelSub').onclick = () => m.close();
+  document.getElementById('confirmSub').onclick = async () => {
+    state.votes[cap].submitted = true;
+    state.votes[cap].submittedAt = new Date().toISOString();
+    await sSet('votes', state.votes);
+    m.close();
+    toast('Ballot submitted', 'success');
+    state.view = 'wait';
+    render();
+  };
+}
+
+function renderWait(){
+  const app = document.getElementById('app');
+  const cap = state.currentCaptain;
+  const myVote = state.votes[cap];
+  const changes = ROSTER.filter(p => !p.isCaptain && myVote.picks[p.name] !== p.tier);
+  const done = submittedCount();
+  const ready = allCaptainsSubmitted();
+  const pending = CAPTAINS.filter(c => !state.votes[c.name]?.submitted).map(c => c.name);
+  const pct = (done / CAPTAINS.length) * 100;
+
+  app.innerHTML = `
+    <div class="status-card success">
+      <div class="icon-wrap">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="text-wrap">
+        <h3>Ballot submitted</h3>
+        <p>Your ${changes.length} tier change${changes.length===1?'':'s'} ${changes.length===1?'is':'are'} locked in. ${ready ? 'All captains have voted — the consensus report is ready.' : 'Waiting on the remaining captains.'}</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="reviseBtn">Revise ballot</button>
+        ${ready ? '<button class="btn primary" id="viewReportBtn">View consensus report →</button>' : ''}
+      </div>
+    </div>
+
+    <div class="progress-banner">
+      <div class="pb-text">
+        <h3>Captain roll call</h3>
+        <p>${ready ? 'All ballots received — consensus is in.' : 'Pending: ' + pending.map(escapeHtml).join(', ')}</p>
+      </div>
+      <div class="progress-track">
+        <div class="progress-num"><strong>${done}</strong><span class="total">/${CAPTAINS.length}</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Your submitted ballot</h2>
+        <div class="meta">${changes.length} change${changes.length===1?'':'s'} · ${ROSTER.length - changes.length} confirmed</div>
+      </div>
+      ${changes.length === 0 ? `
+        <div class="change-card no-change"><div class="change-name">No tier changes proposed — all 50 players confirmed at current tiers.</div></div>
+      ` : `
+        <div class="change-list">
+          ${changes.map(p => {
+            const newT = myVote.picks[p.name];
+            return `
+              <div class="change-card">
+                <div>
+                  <div class="change-name">${escapeHtml(p.name)}</div>
+                  <div class="change-meta"><span class="team-dot team-${p.team}"></span> ${escapeHtml(p.team)}</div>
+                </div>
+                <span class="tier-pill" data-tier="${p.tier}">T${p.tier}</span>
+                <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                <span class="tier-pill" data-tier="${newT}">T${newT}</span>
+                <div></div><div></div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `}
+    </div>
+  `;
+
+  document.getElementById('reviseBtn').onclick = async () => {
+    state.votes[cap].submitted = false;
+    await sSet('votes', state.votes);
+    state.view = 'vote';
+    render();
+  };
+  const vbtn = document.getElementById('viewReportBtn');
+  if (vbtn) vbtn.onclick = () => { state.view = 'report'; render(); };
+}
+
+function renderReport(){
+  const app = document.getElementById('app');
+  const ready = allCaptainsSubmitted();
+  const consensus = ROSTER.map(p => {
+    const r = tierFromVotes(p.name, p.tier, p.isCaptain);
+    return { player: p, ...r };
+  });
+  const changes = consensus.filter(c => c.isChange);
+  const noChange = consensus.filter(c => !c.isChange);
+  const isCommish = state.isCommish;
+  const isFinalized = !!state.finalDecisions;
+
+  app.innerHTML = `
+    <div class="section" style="margin-top:8px">
+      <div class="section-head">
+        <h2>Consensus report</h2>
+        <div class="meta">${ready ? `Based on ${submittedCount()}/${CAPTAINS.length} ballots` : `Interim · ${submittedCount()}/${CAPTAINS.length} submitted`}</div>
+      </div>
+    </div>
+
+    ${!ready ? `
+      <div class="callout">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <div><strong>Heads up.</strong> Not every captain has submitted yet. This is an interim view. Final consensus locks in once all ${CAPTAINS.length} captains submit.</div>
+      </div>
+    ` : ''}
+
+    ${!isFinalized && ready ? `
+      <div class="commish-panel">
+        <div style="flex:1">
+          <h3>Commissioner review</h3>
+          <p>${isCommish ? 'You\'re authenticated. Approve or reject each proposed change individually, then finalize.' : 'Final decisions are password-protected. Authenticate to approve or reject changes.'}</p>
+        </div>
+        ${isCommish 
+          ? `<button class="btn primary" id="finalizeBtn">
+              Finalize all decisions
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+             </button>` 
+          : `<button class="btn primary" id="commishAuthBtn">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Commissioner sign-in
+             </button>`}
+      </div>
+    ` : ''}
+
+    ${isFinalized ? `
+      <div class="final-stamp">
+        <div class="check">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2>Tier changes finalized</h2>
+        <p>Approved by commissioner · ${new Date(state.finalDecisions.finalizedAt).toLocaleString()}</p>
+      </div>
+    ` : ''}
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Proposed tier changes</h2>
+        <div class="meta">${changes.length} of ${ROSTER.length} players</div>
+      </div>
+      ${changes.length === 0 ? `
+        <div class="change-card no-change"><div class="change-name">No tier changes — captains confirmed all current tiers.</div></div>
+      ` : `
+        <div class="change-list">
+          ${changes.map(c => {
+            const breakdown = [1,2,3,4,5].map(t => 
+              `<span class="vb-cell ${c.winner===t?'win':''}">${c.counts[t]||0}</span>`
+            ).join('');
+            const finalDec = state.finalDecisions?.decisions?.[c.player.name];
+            const approved = finalDec?.approved === true;
+            const rejected = finalDec?.approved === false;
+            return `
+              <div class="change-card ${approved?'approved':''} ${rejected?'rejected':''}" data-player="${escapeHtml(c.player.name)}">
+                <div>
+                  <div class="change-name">${escapeHtml(c.player.name)}</div>
+                  <div class="change-meta"><span class="team-dot team-${c.player.team}"></span> ${escapeHtml(c.player.team)} · ${c.total} votes</div>
+                </div>
+                <span class="tier-pill" data-tier="${c.player.tier}">T${c.player.tier}</span>
+                <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                <span class="tier-pill" data-tier="${c.winner}">T${c.winner}</span>
+                <div class="vote-breakdown" title="T1 / T2 / T3 / T4 / T5 counts">${breakdown}</div>
+                ${isCommish && !isFinalized ? `
+                  <div class="change-actions">
+                    <button class="btn sm danger ${rejected?'':''}" data-action="reject" data-player="${escapeHtml(c.player.name)}">${rejected ? '✕ Rejected' : 'Reject'}</button>
+                    <button class="btn sm success ${approved?'':''}" data-action="approve" data-player="${escapeHtml(c.player.name)}">${approved ? '✓ Approved' : 'Approve'}</button>
+                  </div>
+                ` : '<div></div>'}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `}
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Confirmed tiers</h2>
+        <div class="meta">${noChange.length} players held at current</div>
+      </div>
+      <div class="change-list">
+        ${noChange.slice(0, 30).map(c => `
+          <div class="change-card no-change">
+            <div>
+              <div class="change-name">${escapeHtml(c.player.name)}</div>
+              <div class="change-meta"><span class="team-dot team-${c.player.team}"></span> ${escapeHtml(c.player.team)}</div>
+            </div>
+            <span class="tier-pill" data-tier="${c.player.tier}">T${c.player.tier}</span>
+            <div></div><div></div><div></div><div></div>
+          </div>
+        `).join('')}
+        ${noChange.length > 30 ? `<div style="padding:12px;text-align:center;color:var(--muted);font-size:13px">+ ${noChange.length - 30} more held at current tier</div>` : ''}
+      </div>
+    </div>
+
+    <div style="margin-top:32px;display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between">
+      <button class="btn" id="backBtn">← Back</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${isFinalized ? `<button class="btn primary" id="exportBtn">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export report
+        </button>` : ''}
+        ${isCommish && !isFinalized ? `<button class="btn danger" id="resetAllBtn">Reset all ballots</button>` : ''}
+      </div>
+    </div>
+  `;
+
+  const authBtn = document.getElementById('commishAuthBtn');
+  if (authBtn) authBtn.onclick = () => promptCommish(() => { render(); });
+
+  document.querySelectorAll('.change-actions button').forEach(btn => {
+    btn.onclick = () => {
+      const player = btn.dataset.player;
+      const action = btn.dataset.action;
+      if (!state.finalDecisions) state.finalDecisions = { decisions: {}, finalizedAt: null };
+      if (!state.finalDecisions.decisions) state.finalDecisions.decisions = {};
+      state.finalDecisions.decisions[player] = { approved: action === 'approve' };
+      renderReport();
+    };
+  });
+
+  const finBtn = document.getElementById('finalizeBtn');
+  if (finBtn) finBtn.onclick = () => {
+    const decisions = state.finalDecisions?.decisions || {};
+    changes.forEach(c => {
+      if (!(c.player.name in decisions)) decisions[c.player.name] = { approved: true };
+    });
+    const approvedCount = Object.values(decisions).filter(d => d.approved).length;
+    const rejectedCount = Object.values(decisions).filter(d => !d.approved).length;
+    const m = modal({
+      title: 'Finalize all decisions?',
+      body: `<p>This will lock the consensus report and close the ballot.</p>
+             <div style="display:flex;gap:8px;margin:14px 0">
+               <div style="flex:1;padding:12px;background:var(--success-soft);border-radius:var(--radius);text-align:center">
+                 <div style="font-size:24px;font-weight:600;color:var(--success)">${approvedCount}</div>
+                 <div style="font-size:11px;color:var(--ink-soft);font-weight:500;letter-spacing:0.04em;text-transform:uppercase">Approved</div>
+               </div>
+               <div style="flex:1;padding:12px;background:var(--danger-soft);border-radius:var(--radius);text-align:center">
+                 <div style="font-size:24px;font-weight:600;color:var(--danger)">${rejectedCount}</div>
+                 <div style="font-size:11px;color:var(--ink-soft);font-weight:500;letter-spacing:0.04em;text-transform:uppercase">Rejected</div>
+               </div>
+             </div>
+             <p style="font-size:13px;color:var(--muted)">Anyone with access can still view the final report, but no further changes can be made.</p>`,
+      actions: `
+        <button class="btn" id="cancelFin">Cancel</button>
+        <button class="btn primary" id="confirmFin">Finalize</button>
+      `
+    });
+    document.getElementById('cancelFin').onclick = () => m.close();
+    document.getElementById('confirmFin').onclick = async () => {
+      state.finalDecisions = { decisions, finalizedAt: new Date().toISOString() };
+      await sSet('final-decisions', state.finalDecisions);
+      m.close();
+      toast('Decisions finalized', 'success');
+      render();
+    };
+  };
+
+  const resetBtn = document.getElementById('resetAllBtn');
+  if (resetBtn) resetBtn.onclick = () => {
+    const m = modal({
+      title: 'Reset all ballots?',
+      body: '<p style="padding:12px;background:var(--danger-soft);border-radius:var(--radius);color:var(--danger);font-weight:500">⚠ Destructive action. This wipes every captain\'s ballot and reopens voting from scratch. Use only if instructed.</p>',
+      actions: `
+        <button class="btn" id="cancelR">Cancel</button>
+        <button class="btn primary" id="confirmR" style="background:var(--danger);border-color:var(--danger)">Yes, reset all</button>
+      `
+    });
+    document.getElementById('cancelR').onclick = () => m.close();
+    document.getElementById('confirmR').onclick = async () => {
+      state.votes = {};
+      state.finalDecisions = null;
+      await sSet('votes', state.votes);
+      await sDel('final-decisions');
+      m.close();
+      toast('All ballots reset');
+      state.view = 'login';
+      state.currentCaptain = null;
+      render();
+    };
+  };
+
+  const expBtn = document.getElementById('exportBtn');
+  if (expBtn) expBtn.onclick = () => exportReport(consensus);
+
+  document.getElementById('backBtn').onclick = () => {
+    if (state.currentCaptain) state.view = 'wait';
+    else state.view = 'login';
+    render();
+  };
+}
+
+function exportReport(consensus){
+  const decisions = state.finalDecisions?.decisions || {};
+  let csv = 'Player,Team,Current Tier,Final Tier,Status,T1 votes,T2 votes,T3 votes,T4 votes,T5 votes\n';
+  consensus.forEach(c => {
+    const dec = decisions[c.player.name];
+    let status = 'NO CHANGE';
+    let final = c.player.tier;
+    if (c.isChange) {
+      if (dec?.approved === true) { status = 'APPROVED'; final = c.winner; }
+      else if (dec?.approved === false) { status = 'REJECTED'; final = c.player.tier; }
+      else { status = 'PROPOSED'; final = c.winner; }
+    }
+    csv += `"${c.player.name}","${c.player.team}",${c.player.tier},${final},${status},${c.counts[1]},${c.counts[2]},${c.counts[3]},${c.counts[4]},${c.counts[5]}\n`;
+  });
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '703_retier_final_report.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Report downloaded', 'success');
+}
+
+function renderDashboard(){
+  const app = document.getElementById('app');
+  const f = state.dashFilter;
+  const teams = [...new Set(ROSTER.map(p => p.team))].sort();
+
+  app.innerHTML = `
+    <div class="section" style="margin-top:8px">
+      <div class="section-head">
+        <div>
+          <h2>Player stat dashboard</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:4px">Stat-derived tier suggestions across all 9 criteria · Click any row to see the breakdown</p>
+        </div>
+        <button class="btn" id="closeDash">← Back</button>
+      </div>
+    </div>
+
+    <div class="callout">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <div><strong>How suggestions work.</strong> Each player is scored across the nine voted criteria — Shooting, Off-Ball Movement, Shot Selection, Passing, Ball Handling, Rebounding, Defense, Motor/Hustle, and Impact — using Season 3 stats and playing-style tags. Scores are weighted (Impact, Shooting, and Defense most heavily), composited, and percentile-ranked. <em>Captains are locked at T1.</em> Treat suggestions as a starting point — your eyes still win.</div>
+    </div>
+
+    <div class="dash-filters">
+      <div class="filter-group">
+        <label>Current tier</label>
+        <div class="chip-row">
+          ${['all',1,2,3,4,5].map(v => `<button class="chip ${f.tier==v?'on':''}" data-cf="tier" data-v="${v}">${v==='all'?'All':'T'+v}</button>`).join('')}
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Suggested tier</label>
+        <div class="chip-row">
+          ${['all',1,2,3,4,5].map(v => `<button class="chip ${f.sugTier==v?'on':''}" data-cf="sugTier" data-v="${v}">${v==='all'?'All':'T'+v}</button>`).join('')}
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Movement</label>
+        <div class="chip-row">
+          <button class="chip ${f.move=='all'?'on':''}" data-cf="move" data-v="all">All</button>
+          <button class="chip ${f.move=='up'?'on':''}" data-cf="move" data-v="up">▲ Promote</button>
+          <button class="chip ${f.move=='down'?'on':''}" data-cf="move" data-v="down">▼ Demote</button>
+          <button class="chip ${f.move=='hold'?'on':''}" data-cf="move" data-v="hold">Hold</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Team</label>
+        <select id="dashTeam">
+          <option value="all">All teams</option>
+          ${teams.map(t => `<option value="${escapeHtml(t)}" ${f.team===t?'selected':''}>${escapeHtml(t)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group" style="flex:1;min-width:180px">
+        <label>Search</label>
+        <input type="search" id="dashSearch" placeholder="Name or team…" value="${escapeHtml(state.dashSearch)}" />
+      </div>
+      <div class="filter-group">
+        <label>Sort</label>
+        <select id="dashSort">
+          <option value="score-desc" ${state.dashSort==='score-desc'?'selected':''}>Composite ↓</option>
+          <option value="score-asc" ${state.dashSort==='score-asc'?'selected':''}>Composite ↑</option>
+          <option value="tier-asc" ${state.dashSort==='tier-asc'?'selected':''}>Current tier ↑</option>
+          <option value="tier-desc" ${state.dashSort==='tier-desc'?'selected':''}>Current tier ↓</option>
+          <option value="name" ${state.dashSort==='name'?'selected':''}>Name A–Z</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="dash-grid" id="dashGrid"></div>
+  `;
+
+  renderDashGrid();
+
+  document.querySelectorAll('.chip').forEach(c => {
+    c.onclick = () => {
+      const key = c.dataset.cf;
+      let v = c.dataset.v;
+      if (v !== 'all' && v !== 'up' && v !== 'down' && v !== 'hold') v = parseInt(v);
+      state.dashFilter[key] = v;
+      renderDashboard();
+    };
+  });
+  document.getElementById('dashTeam').onchange = (e) => { state.dashFilter.team = e.target.value; renderDashboard(); };
+  document.getElementById('dashSort').onchange = (e) => { state.dashSort = e.target.value; renderDashGrid(); };
+  document.getElementById('dashSearch').oninput = (e) => { state.dashSearch = e.target.value; renderDashGrid(); };
+  document.getElementById('closeDash').onclick = () => {
+    const back = state.returnFrom || (state.currentCaptain ? (state.votes[state.currentCaptain]?.submitted ? 'wait' : 'vote') : 'login');
+    state.returnFrom = null;
+    state.view = back;
+    render();
+  };
+}
+
+function renderDashGrid(){
+  const grid = document.getElementById('dashGrid');
+  if (!grid) return;
+  const f = state.dashFilter;
+  let rows = ROSTER.map(p => {
+    const sug = SUGGESTIONS[p.name];
+    return { p, sug, suggested: sug.suggested };
+  });
+  if (f.tier !== 'all') rows = rows.filter(r => r.p.tier === f.tier);
+  if (f.sugTier !== 'all') rows = rows.filter(r => r.suggested === f.sugTier);
+  if (f.team !== 'all') rows = rows.filter(r => r.p.team === f.team);
+  if (f.move === 'up')   rows = rows.filter(r => r.suggested < r.p.tier);
+  if (f.move === 'down') rows = rows.filter(r => r.suggested > r.p.tier);
+  if (f.move === 'hold') rows = rows.filter(r => r.suggested === r.p.tier);
+  const q = state.dashSearch.trim().toLowerCase();
+  if (q) rows = rows.filter(r => r.p.name.toLowerCase().includes(q) || r.p.team.toLowerCase().includes(q));
+
+  const sortFns = {
+    'score-desc': (a,b) => b.sug.score - a.sug.score,
+    'score-asc':  (a,b) => a.sug.score - b.sug.score,
+    'tier-asc':   (a,b) => a.p.tier - b.p.tier || b.sug.score - a.sug.score,
+    'tier-desc':  (a,b) => b.p.tier - a.p.tier || b.sug.score - a.sug.score,
+    'name':       (a,b) => a.p.name.localeCompare(b.p.name),
+  };
+  rows.sort(sortFns[state.dashSort] || sortFns['score-desc']);
+
+  if (rows.length === 0){
+    grid.innerHTML = `<div style="padding:60px;text-align:center;color:var(--muted)">No players match these filters.</div>`;
+    return;
+  }
+
+  grid.innerHTML = rows.map(({p, sug, suggested}) => {
+    const move = sug.locked ? 'lock' : (suggested < p.tier ? 'up' : suggested > p.tier ? 'down' : 'hold');
+    const arrowChar = move==='up' ? '▲' : move==='down' ? '▼' : move==='lock' ? '🔒' : '=';
+    const moveLbl = move==='up' ? '▲ Promote' : move==='down' ? '▼ Demote' : move==='lock' ? '🔒 Locked' : 'Hold';
+    const expanded = state.dashExpanded === p.name;
+    return `
+      <div class="dash-card ${move}" data-player="${escapeHtml(p.name)}">
+        <div class="dash-head">
+          <div class="dash-id">
+            <div class="dash-rank">#${sug.rank || '—'}</div>
+            <div style="min-width:0;flex:1">
+              <div class="dash-name">${escapeHtml(p.name)}${p.isCaptain ? '<span class="badge capt">Captain</span>' : ''}</div>
+              <div class="dash-sub"><span class="team-dot team-${p.team}"></span> ${escapeHtml(p.team)}</div>
+              ${p.style && p.style !== 'Captain' ? `<div class="dash-style">${escapeHtml(p.style)}</div>` : ''}
+            </div>
+          </div>
+          <div class="dash-tiers">
+            <div class="tier-block"><span class="tier-pill" data-tier="${p.tier}">T${p.tier}</span><span class="tier-lbl">Current</span></div>
+            <div class="dash-arrow ${move}">${arrowChar}</div>
+            <div class="tier-block"><span class="tier-pill" data-tier="${suggested}">T${suggested}</span><span class="tier-lbl">Suggested</span></div>
+          </div>
+          <div class="dash-statline">
+            <div class="stat"><span class="v">${p.ppg ?? '—'}</span><span class="k">PPG</span></div>
+            <div class="stat"><span class="v">${p.rpg ?? '—'}</span><span class="k">RPG</span></div>
+            <div class="stat"><span class="v">${p.apg ?? '—'}</span><span class="k">APG</span></div>
+            <div class="stat"><span class="v">${p.fgp ?? '—'}${p.fgp ? '%' : ''}</span><span class="k">FG</span></div>
+            <div class="stat"><span class="v">${p.tpp ?? '—'}${p.tpp ? '%' : ''}</span><span class="k">3P</span></div>
+          </div>
+          <div class="dash-meta">
+            <div class="move-tag ${move}">${moveLbl}</div>
+            <div class="composite-score">Score <strong>${sug.score}</strong></div>
+            <button class="expand-btn">${expanded ? 'Hide ▲' : 'Breakdown ▼'}</button>
+          </div>
+        </div>
+        ${expanded ? `
+          <div class="dash-breakdown">
+            <div class="reason-block">
+              <div class="reason-label">Why this suggestion</div>
+              <div class="reason-text">${escapeHtml(sug.reason || '')}</div>
+            </div>
+            <div class="crit-list">
+            ${CATEGORY_LIST.map(cat => {
+              const v = sug.criteria[cat];
+              const pct = Math.max(0, Math.min(100, v));
+              return `
+                <div class="crit-row">
+                  <div class="crit-name">${cat}</div>
+                  <div class="crit-bar"><div class="crit-fill" style="width:${pct}%"></div></div>
+                  <div class="crit-val">${v.toFixed(1)}</div>
+                </div>
+              `;
+            }).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.dash-card').forEach(card => {
+    card.querySelector('.expand-btn').onclick = (e) => {
+      e.stopPropagation();
+      const name = card.dataset.player;
+      state.dashExpanded = state.dashExpanded === name ? null : name;
+      renderDashGrid();
+    };
+  });
+}
+
+function render(){
+  renderNavActions();
+  if (state.view === 'login') renderLogin();
+  else if (state.view === 'vote') renderVote();
+  else if (state.view === 'wait') renderWait();
+  else if (state.view === 'dashboard') renderDashboard();
+  else if (state.view === 'report' || state.view === 'final') renderReport();
+}
+
+(async function init(){
+  await loadAll();
+  render();
+})();
+</script>
+</body>
+</html>
