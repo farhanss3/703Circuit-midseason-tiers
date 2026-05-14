@@ -790,6 +790,69 @@
   .commish-panel .btn.primary{background:var(--warning);color:#1f1f1f;border-color:var(--warning);box-shadow:0 2px 6px rgba(242,153,0,0.4)}
   .commish-panel .btn.primary:hover{background:#e08e00}
 
+  /* Block banner: shown when not all captains have submitted, makes clear no approvals are possible */
+  .block-banner{
+    background:linear-gradient(135deg, var(--warning-soft) 0%, #fef0d0 100%);
+    border:1px solid #f5deb3;
+    border-radius:var(--radius-lg);
+    padding:20px 24px;margin-bottom:20px;
+    display:flex;gap:16px;align-items:flex-start;
+    box-shadow:var(--shadow-1);
+  }
+  .block-icon{
+    width:40px;height:40px;border-radius:50%;
+    background:var(--warning);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .block-banner h3{font-size:16px;font-weight:600;color:#7a4a00;margin-bottom:4px}
+  .block-banner p{font-size:13px;color:#8a5a00;line-height:1.5}
+
+  /* Roll-call grid: shows each captain's submission status with their proposed changes */
+  .roll-call-grid{
+    display:grid;grid-template-columns:repeat(auto-fill, minmax(360px, 1fr));gap:12px;
+  }
+  .roll-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:var(--shadow-1);
+    transition:all .15s ease;
+  }
+  .roll-card.done{border-left:4px solid var(--success)}
+  .roll-card.pending{border-left:4px solid var(--warning);opacity:0.85}
+  .roll-card.pending:hover{opacity:1}
+  .roll-head{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 16px;
+  }
+  .roll-name{font-size:14px;font-weight:600;color:var(--ink);line-height:1.2}
+  .roll-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .roll-status{flex-shrink:0}
+  .roll-status .rated-pill svg{display:inline-block;vertical-align:middle}
+  .roll-changes{
+    background:var(--surface-tint);
+    border-top:1px solid var(--line);
+    padding:10px 16px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .roll-no-changes{
+    font-style:italic;color:var(--muted);font-size:12px;
+    font-family:'Newsreader',serif;
+  }
+  .roll-change-row{
+    display:flex;align-items:center;gap:8px;
+    font-size:12px;color:var(--ink-soft);
+  }
+  .roll-change-name{flex:1;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .roll-arrow{color:var(--muted);font-size:11px}
+  .roll-more{font-size:11px;color:var(--muted);font-style:italic;padding-top:2px}
+  .tier-pill-mini{
+    min-width:28px !important;height:22px !important;padding:0 6px !important;
+    font-size:11px !important;
+  }
+
   .final-stamp{
     background:linear-gradient(135deg, var(--success) 0%, #2c8c47 100%);
     color:#fff;
@@ -1842,130 +1905,192 @@ function renderReport(){
     <div class="section" style="margin-top:8px">
       <div class="section-head">
         <h2>Consensus report</h2>
-        <div class="meta">${ready ? `Based on ${submittedCount()}/${CAPTAINS.length} ballots` : `Interim · ${submittedCount()}/${CAPTAINS.length} submitted`}</div>
+        <div class="meta">${ready ? `Based on ${submittedCount()}/${CAPTAINS.length} ballots` : `Waiting on captains · ${submittedCount()}/${CAPTAINS.length} submitted`}</div>
       </div>
     </div>
 
     ${!ready ? `
-      <div class="callout">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <div><strong>Heads up.</strong> Not every captain has submitted yet. This is an interim view — the consensus and recommendations will update as more ballots come in. Commissioner approvals unlock once all ${CAPTAINS.length} captains have rated each player.</div>
-      </div>
-    ` : ''}
-
-    ${!isFinalized && ready ? `
-      <div class="commish-panel">
+      <!-- BLOCKED STATE: not all captains submitted. Show roll-call + per-captain summary, hide approval UI. -->
+      <div class="block-banner">
+        <div class="block-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
         <div style="flex:1">
-          <h3>Commissioner review</h3>
-          <p>${isCommish 
-              ? (allFullyRated 
-                  ? 'You\'re authenticated. The recommended tier is the rounded average of all captain picks. Approve or reject each proposed change, then finalize.' 
-                  : `You\'re authenticated, but ${partialChanges} proposed change${partialChanges===1?'':'s'} ${partialChanges===1?'is':'are'} still waiting on at least one captain. Those rows stay locked until every captain has weighed in.`)
-              : 'Final decisions are password-protected. Authenticate to approve or reject changes.'}</p>
+          <h3>Approvals locked — waiting on ${CAPTAINS.length - submittedCount()} captain${CAPTAINS.length - submittedCount()===1?'':'s'}</h3>
+          <p>Per league rules, the commissioner cannot approve any tier changes until every captain has submitted their ballot. You can see who has submitted what below, but approve/reject buttons stay locked until the roll call is complete.</p>
         </div>
-        ${isCommish 
-          ? `<button class="btn primary" id="finalizeBtn" ${allFullyRated ? '' : 'disabled title="Every proposed change must have ratings from all captains before finalizing"'}>
-              Finalize all decisions
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-             </button>` 
-          : `<button class="btn primary" id="commishAuthBtn">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              Commissioner sign-in
-             </button>`}
       </div>
-    ` : ''}
 
-    ${isFinalized ? `
-      <div class="final-stamp">
-        <div class="check">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <div class="section">
+        <div class="section-head">
+          <h2>Captain roll call</h2>
+          <div class="meta">${submittedCount()}/${CAPTAINS.length} captains submitted</div>
         </div>
-        <h2>Tier changes finalized</h2>
-        <p>Approved by commissioner · ${new Date(state.finalDecisions.finalizedAt).toLocaleString()}</p>
-      </div>
-    ` : ''}
-
-    <div class="section">
-      <div class="section-head">
-        <h2>Proposed tier changes</h2>
-        <div class="meta">${changes.length} of ${ROSTER.length} players · recommendations use the average of captain picks</div>
-      </div>
-      ${changes.length === 0 ? `
-        <div class="change-card no-change"><div class="change-name">No tier changes — captains confirmed all current tiers.</div></div>
-      ` : `
-        <div class="change-list">
-          ${changes.map(c => {
-            const breakdown = [1,2,3,4,5].map(t => 
-              `<span class="vb-cell ${c.winner===t?'win':''}">${c.counts[t]||0}</span>`
-            ).join('');
-            const finalDec = state.finalDecisions?.decisions?.[c.player.name];
-            const approved = finalDec?.approved === true;
-            const rejected = finalDec?.approved === false;
-            const missing = CAPTAINS.length - c.total;
-            const modeDiffers = c.mode !== c.mean && c.mode !== c.player.tier;
+        <div class="roll-call-grid">
+          ${CAPTAINS.map(c => {
+            const v = state.votes[c.name];
+            const sub = v?.submitted;
+            const myChanges = sub ? ROSTER.filter(p => !p.isCaptain && v.picks[p.name] !== p.tier) : [];
             return `
-              <div class="change-card ${approved?'approved':''} ${rejected?'rejected':''} ${!c.allRated?'partial':''}" data-player="${escapeHtml(c.player.name)}">
-                <div>
-                  <div class="change-name">${escapeHtml(c.player.name)}</div>
-                  <div class="change-meta">
-                    <span class="team-dot team-${c.player.team}"></span> ${escapeHtml(c.player.team)} ·
-                    ${c.allRated 
-                      ? `<span class="rated-pill rated-full">All ${c.total} rated · avg T${c.rawMean.toFixed(1)}</span>`
-                      : `<span class="rated-pill rated-partial">${c.total}/${CAPTAINS.length} rated · waiting on ${missing}</span>`}
-                    ${modeDiffers && c.allRated ? `<span class="rated-pill" style="background:var(--surface-tint);color:var(--muted)">plurality: T${c.mode}</span>` : ''}
+              <div class="roll-card ${sub ? 'done' : 'pending'}">
+                <div class="roll-head">
+                  <div class="captain-avatar team-${c.team}">${initials(c.name)}</div>
+                  <div style="flex:1;min-width:0">
+                    <div class="roll-name">${escapeHtml(c.name)}</div>
+                    <div class="roll-sub">Team ${escapeHtml(c.team)}</div>
+                  </div>
+                  <div class="roll-status">
+                    ${sub 
+                      ? `<span class="rated-pill rated-full"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Submitted · ${myChanges.length} change${myChanges.length===1?'':'s'}</span>`
+                      : `<span class="rated-pill rated-partial">Pending</span>`}
                   </div>
                 </div>
-                <span class="tier-pill" data-tier="${c.player.tier}">T${c.player.tier}</span>
-                <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                <span class="tier-pill" data-tier="${c.winner}">T${c.winner}</span>
-                <div class="vote-breakdown" title="T1 / T2 / T3 / T4 / T5 counts">${breakdown}</div>
-                ${isCommish && !isFinalized ? (
-                  c.allRated
-                    ? `<div class="change-actions">
-                         <button class="btn sm danger" data-action="reject" data-player="${escapeHtml(c.player.name)}">${rejected ? '✕ Rejected' : 'Reject'}</button>
-                         <button class="btn sm success" data-action="approve" data-player="${escapeHtml(c.player.name)}">${approved ? '✓ Approved' : 'Approve'}</button>
-                       </div>`
-                    : `<div class="change-actions">
-                         <button class="btn sm" disabled title="Waiting for all captains to rate this player">Locked</button>
-                       </div>`
-                ) : '<div></div>'}
+                ${sub && myChanges.length > 0 && isCommish ? `
+                  <div class="roll-changes">
+                    ${myChanges.slice(0, 8).map(p => `
+                      <div class="roll-change-row">
+                        <span class="roll-change-name">${escapeHtml(p.name)}</span>
+                        <span class="tier-pill tier-pill-mini" data-tier="${p.tier}">T${p.tier}</span>
+                        <span class="roll-arrow">→</span>
+                        <span class="tier-pill tier-pill-mini" data-tier="${v.picks[p.name]}">T${v.picks[p.name]}</span>
+                      </div>
+                    `).join('')}
+                    ${myChanges.length > 8 ? `<div class="roll-more">+ ${myChanges.length - 8} more change${myChanges.length - 8 === 1 ? '' : 's'}</div>` : ''}
+                  </div>
+                ` : ''}
+                ${sub && myChanges.length === 0 ? `
+                  <div class="roll-changes roll-no-changes">Confirmed all current tiers — no changes proposed.</div>
+                ` : ''}
               </div>
             `;
           }).join('')}
         </div>
-      `}
-    </div>
-
-    <div class="section">
-      <div class="section-head">
-        <h2>Confirmed tiers</h2>
-        <div class="meta">${noChange.length} players held at current</div>
       </div>
-      <div class="change-list">
-        ${noChange.slice(0, 30).map(c => `
-          <div class="change-card no-change">
-            <div>
-              <div class="change-name">${escapeHtml(c.player.name)}</div>
-              <div class="change-meta"><span class="team-dot team-${c.player.team}"></span> ${escapeHtml(c.player.team)}</div>
-            </div>
-            <span class="tier-pill" data-tier="${c.player.tier}">T${c.player.tier}</span>
-            <div></div><div></div><div></div><div></div>
+
+      ${!isCommish ? `
+        <div class="commish-panel" style="margin-top:24px">
+          <div style="flex:1">
+            <h3>Commissioner sign-in</h3>
+            <p>Authenticate to see what each captain has proposed. You still won't be able to approve anything until all captains submit.</p>
           </div>
-        `).join('')}
-        ${noChange.length > 30 ? `<div style="padding:12px;text-align:center;color:var(--muted);font-size:13px">+ ${noChange.length - 30} more held at current tier</div>` : ''}
-      </div>
-    </div>
+          <button class="btn primary" id="commishAuthBtn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Commissioner sign-in
+          </button>
+        </div>
+      ` : ''}
 
-    <div style="margin-top:32px;display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between">
-      <button class="btn" id="backBtn">← Back</button>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${isFinalized ? `<button class="btn primary" id="exportBtn">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export report
-        </button>` : ''}
-        ${isCommish && !isFinalized ? `<button class="btn danger" id="resetAllBtn">Reset all ballots</button>` : ''}
+      <div style="margin-top:28px;display:flex;gap:8px">
+        <button class="btn" id="backBtn">← Back</button>
       </div>
-    </div>
+    ` : `
+      <!-- READY STATE: all captains submitted. Show consensus + approve/reject UI. -->
+
+      ${!isFinalized ? `
+        <div class="commish-panel">
+          <div style="flex:1">
+            <h3>Commissioner review</h3>
+            <p>${isCommish 
+                ? 'You\'re authenticated. The recommended tier is the rounded average of all captain picks. Approve or reject each proposed change, then finalize.' 
+                : 'Final decisions are password-protected. Authenticate to approve or reject changes.'}</p>
+          </div>
+          ${isCommish 
+            ? `<button class="btn primary" id="finalizeBtn">
+                Finalize all decisions
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+               </button>` 
+            : `<button class="btn primary" id="commishAuthBtn">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Commissioner sign-in
+               </button>`}
+        </div>
+      ` : ''}
+
+      ${isFinalized ? `
+        <div class="final-stamp">
+          <div class="check">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2>Tier changes finalized</h2>
+          <p>Approved by commissioner · ${new Date(state.finalDecisions.finalizedAt).toLocaleString()}</p>
+        </div>
+      ` : ''}
+
+      <div class="section">
+        <div class="section-head">
+          <h2>Proposed tier changes</h2>
+          <div class="meta">${changes.length} of ${ROSTER.length} players · recommendations use the average of captain picks</div>
+        </div>
+        ${changes.length === 0 ? `
+          <div class="change-card no-change"><div class="change-name">No tier changes — captains confirmed all current tiers.</div></div>
+        ` : `
+          <div class="change-list">
+            ${changes.map(c => {
+              const breakdown = [1,2,3,4,5].map(t => 
+                `<span class="vb-cell ${c.winner===t?'win':''}">${c.counts[t]||0}</span>`
+              ).join('');
+              const finalDec = state.finalDecisions?.decisions?.[c.player.name];
+              const approved = finalDec?.approved === true;
+              const rejected = finalDec?.approved === false;
+              const modeDiffers = c.mode !== c.mean && c.mode !== c.player.tier;
+              return `
+                <div class="change-card ${approved?'approved':''} ${rejected?'rejected':''}" data-player="${escapeHtml(c.player.name)}">
+                  <div>
+                    <div class="change-name">${escapeHtml(c.player.name)}</div>
+                    <div class="change-meta">
+                      <span class="team-dot team-${c.player.team}"></span> ${escapeHtml(c.player.team)} ·
+                      <span class="rated-pill rated-full">All ${c.total} rated · avg T${c.rawMean.toFixed(1)}</span>
+                      ${modeDiffers ? `<span class="rated-pill" style="background:var(--surface-tint);color:var(--muted)">plurality: T${c.mode}</span>` : ''}
+                    </div>
+                  </div>
+                  <span class="tier-pill" data-tier="${c.player.tier}">T${c.player.tier}</span>
+                  <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  <span class="tier-pill" data-tier="${c.winner}">T${c.winner}</span>
+                  <div class="vote-breakdown" title="T1 / T2 / T3 / T4 / T5 counts">${breakdown}</div>
+                  ${isCommish && !isFinalized ? `
+                    <div class="change-actions">
+                      <button class="btn sm danger" data-action="reject" data-player="${escapeHtml(c.player.name)}">${rejected ? '✕ Rejected' : 'Reject'}</button>
+                      <button class="btn sm success" data-action="approve" data-player="${escapeHtml(c.player.name)}">${approved ? '✓ Approved' : 'Approve'}</button>
+                    </div>
+                  ` : '<div></div>'}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2>Confirmed tiers</h2>
+          <div class="meta">${noChange.length} players held at current</div>
+        </div>
+        <div class="change-list">
+          ${noChange.slice(0, 30).map(c => `
+            <div class="change-card no-change">
+              <div>
+                <div class="change-name">${escapeHtml(c.player.name)}</div>
+                <div class="change-meta"><span class="team-dot team-${c.player.team}"></span> ${escapeHtml(c.player.team)}</div>
+              </div>
+              <span class="tier-pill" data-tier="${c.player.tier}">T${c.player.tier}</span>
+              <div></div><div></div><div></div><div></div>
+            </div>
+          `).join('')}
+          ${noChange.length > 30 ? `<div style="padding:12px;text-align:center;color:var(--muted);font-size:13px">+ ${noChange.length - 30} more held at current tier</div>` : ''}
+        </div>
+      </div>
+
+      <div style="margin-top:32px;display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between">
+        <button class="btn" id="backBtn">← Back</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${isFinalized ? `<button class="btn primary" id="exportBtn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export report
+          </button>` : ''}
+          ${isCommish && !isFinalized ? `<button class="btn danger" id="resetAllBtn">Reset all ballots</button>` : ''}
+        </div>
+      </div>
+    `}
   `;
 
   const authBtn = document.getElementById('commishAuthBtn');
