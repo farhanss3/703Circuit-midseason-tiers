@@ -436,7 +436,7 @@
   }
   .player-row{
     display:grid;
-    grid-template-columns:36px minmax(220px, 1.5fr) 110px 80px 1fr auto;
+    grid-template-columns:36px minmax(220px, 1.5fr) 110px 80px minmax(150px, auto) auto;
     align-items:center;gap:16px;
     padding:14px 20px;
     border-bottom:1px solid var(--line-soft);
@@ -446,6 +446,26 @@
   .player-row:hover{background:var(--surface-tint)}
   .player-row.changed{background:linear-gradient(90deg, var(--warning-soft), transparent 60%)}
   .player-row.locked-row{background:linear-gradient(90deg, var(--surface-tint), transparent 60%)}
+
+  /* Suggested-tier inline pill (shown in the voting view) */
+  .suggested-cell{display:flex;justify-content:flex-start;cursor:help}
+  .sug-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 11px;border-radius:var(--radius-full);
+    font-size:11px;font-weight:600;letter-spacing:0.01em;
+    border:1px solid transparent;
+    line-height:1;
+  }
+  .sug-arrow{font-size:11px;line-height:1}
+  .sug-label{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em}
+  .sug-tier{font-weight:700;font-size:12px}
+  .sug-pill.sug-up{background:var(--success-soft);border-color:#a8d5b4;color:var(--success)}
+  .sug-pill.sug-up .sug-label{color:#1e8e3e;opacity:0.7}
+  .sug-pill.sug-down{background:var(--danger-soft);border-color:#f5b8b4;color:var(--danger)}
+  .sug-pill.sug-down .sug-label{color:var(--danger);opacity:0.7}
+  .sug-pill.sug-hold{background:var(--surface-tint);border-color:var(--line);color:var(--ink-soft)}
+  .sug-pill.sug-hold .sug-label{color:var(--muted)}
+  .sug-pill.sug-lock{background:var(--warning-soft);border-color:#f5deb3;color:#8a5a00}
 
   .row-idx{
     font-size:12px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums;
@@ -923,8 +943,9 @@
     .hero{padding:32px 16px 16px}
     .hero h1{font-size:26px}
     .player-row{grid-template-columns:32px 1fr;gap:10px;padding:14px 16px}
-    .player-row > .team-pill, .player-row > .ppg-cell{grid-column:2;display:inline-flex}
+    .player-row > .team-pill, .player-row > .ppg-cell, .player-row > .suggested-cell{grid-column:2;display:inline-flex}
     .player-row > .ppg-cell{flex-direction:row;gap:6px;align-items:baseline}
+    .suggested-cell{justify-self:start}
     .tier-selector{grid-column:1/-1;margin-top:8px;justify-content:flex-start;flex-wrap:wrap}
     .tier-btn{min-width:36px;height:32px;font-size:12px}
     .change-card{grid-template-columns:1fr;gap:10px}
@@ -1729,6 +1750,10 @@ function renderRosterRows(){
     const changed = myPick !== p.tier;
     const isOwnPlayer = p.team === CAPTAINS.find(c => c.name === cap)?.team;
     const isLocked = p.isCaptain;
+    const sug = SUGGESTIONS[p.name];
+    const suggested = sug ? sug.suggested : p.tier;
+    const sugMove = isLocked ? 'lock' : (suggested < p.tier ? 'up' : suggested > p.tier ? 'down' : 'hold');
+    const sugChar = sugMove === 'up' ? '▲' : sugMove === 'down' ? '▼' : sugMove === 'lock' ? '🔒' : '─';
     return `
       <div class="player-row ${changed && !isLocked ? 'changed' : ''} ${isLocked ? 'locked-row' : ''}" data-player="${escapeHtml(p.name)}">
         <div class="row-idx">${String(i+1).padStart(2,'0')}</div>
@@ -1742,7 +1767,15 @@ function renderRosterRows(){
         </div>
         <div class="team-pill"><span class="team-dot team-${p.team}"></span> ${escapeHtml(p.team)}</div>
         <div class="ppg-cell"><span class="num">${p.ppg ?? '—'}</span><span class="lbl">PPG</span></div>
-        <div></div>
+        <div class="suggested-cell" title="Stat-derived suggestion. Open the dashboard to see why.">
+          ${isLocked
+            ? `<span class="sug-pill sug-lock"><span class="sug-arrow">🔒</span> Locked</span>`
+            : `<span class="sug-pill sug-${sugMove}">
+                 <span class="sug-arrow">${sugChar}</span>
+                 <span class="sug-label">Suggested</span>
+                 <span class="sug-tier">T${suggested}</span>
+               </span>`}
+        </div>
         <div class="tier-selector">
           ${isLocked
             ? `<span class="lock-chip">
