@@ -331,6 +331,70 @@
   }
   .callout strong{color:var(--ink);font-weight:600}
 
+  /* Methodology expansion (dashboard "How suggestions work") */
+  .how-details{width:100%}
+  .how-details > summary{
+    cursor:pointer;list-style:none;
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;color:var(--ink);
+    padding:2px 0;
+    user-select:none;
+  }
+  .how-details > summary::-webkit-details-marker{display:none}
+  .how-details > summary::before{
+    content:'▸';color:var(--primary);
+    transition:transform .2s ease;
+    font-size:11px;display:inline-block;
+  }
+  .how-details[open] > summary::before{transform:rotate(90deg)}
+  .how-details > summary:hover{color:var(--primary)}
+
+  .how-body{
+    margin-top:14px;padding-top:14px;
+    border-top:1px solid #c8e0fc;
+    font-size:13px;line-height:1.6;color:var(--ink-soft);
+  }
+  .how-body h4{
+    font-size:14px;font-weight:600;color:var(--ink);
+    margin-top:18px;margin-bottom:8px;
+    letter-spacing:-0.005em;
+  }
+  .how-body h4:first-child{margin-top:0}
+  .how-body p{margin-bottom:10px}
+  .how-body p:last-child{margin-bottom:0}
+  .how-body ul, .how-body ol{padding-left:20px;margin-bottom:10px}
+  .how-body li{margin-bottom:6px;line-height:1.5}
+  .how-body strong{color:var(--ink);font-weight:600}
+  .how-body em{font-style:italic;color:var(--muted)}
+  .how-body .boost{
+    display:inline-block;padding:1px 7px;border-radius:var(--radius-full);
+    background:var(--success-soft);color:var(--success);
+    font-weight:600;font-size:12px;
+  }
+  .how-body .penalty{
+    display:inline-block;padding:1px 7px;border-radius:var(--radius-full);
+    background:var(--danger-soft);color:var(--danger);
+    font-weight:600;font-size:12px;
+  }
+  .weight-grid{
+    display:grid;grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:6px 14px;margin:10px 0;
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);padding:12px 16px;
+  }
+  .w-row{
+    display:flex;align-items:center;gap:8px;font-size:12px;
+  }
+  .w-row strong{color:var(--ink);font-weight:500;flex:1}
+  .w-val{
+    font-family:'Google Sans Code',monospace;font-size:12px;
+    color:var(--primary);font-weight:600;
+  }
+  .w-label{
+    font-size:10px;color:var(--muted);font-style:italic;
+    text-transform:uppercase;letter-spacing:0.04em;
+  }
+
   /* ===== TOOLBAR ===== */
   .toolbar{
     display:flex;gap:8px;flex-wrap:wrap;align-items:center;
@@ -509,9 +573,17 @@
   .change-card.no-change{opacity:0.7;background:var(--surface-tint)}
   .change-card.approved{border-left:4px solid var(--success);background:linear-gradient(90deg, var(--success-soft) 0%, var(--surface) 30%)}
   .change-card.rejected{border-left:4px solid var(--danger);background:linear-gradient(90deg, var(--danger-soft) 0%, var(--surface) 30%);opacity:0.75}
+  .change-card.partial{border-left:4px solid var(--warning);background:linear-gradient(90deg, var(--warning-soft) 0%, var(--surface) 40%)}
 
   .change-name{font-size:14px;font-weight:500;color:var(--ink)}
-  .change-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:2px}
+  .change-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap}
+  .rated-pill{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:1px 8px;border-radius:var(--radius-full);
+    font-size:11px;font-weight:600;letter-spacing:0.01em;
+  }
+  .rated-pill.rated-full{background:var(--success-soft);color:var(--success)}
+  .rated-pill.rated-partial{background:var(--warning-soft);color:#8a5a00}
 
   .tier-pill{
     display:inline-flex;align-items:center;justify-content:center;
@@ -1220,24 +1292,49 @@ async function loadAll(){
    ============================================================ */
 function tierFromVotes(playerName, currentTier, isCaptain){
   if (isCaptain) {
-    return { counts: {1:CAPTAINS.length,2:0,3:0,4:0,5:0}, winner: 1, total: 0, isChange: false, locked: true };
+    return { counts: {1:CAPTAINS.length,2:0,3:0,4:0,5:0}, winner: 1, mean: 1, mode: 1, total: 0, isChange: false, locked: true, allRated: true };
   }
   const counts = {1:0,2:0,3:0,4:0,5:0};
   let total = 0;
+  let sum = 0;
   Object.values(state.votes).forEach(v => {
     if (!v.submitted) return;
     const t = v.picks[playerName];
-    if (t) { counts[t]++; total++; }
+    if (t) { counts[t]++; total++; sum += t; }
   });
-  let winner = currentTier;
-  let max = 0;
-  let tied = false;
-  for (let t=1; t<=5; t++){
-    if (counts[t] > max){ max = counts[t]; winner = t; tied = false; }
-    else if (counts[t] === max && t !== winner && max > 0){ tied = true; }
+
+  // Whether every captain has rated this player. Required before commissioner can approve.
+  const allRated = total >= CAPTAINS.length;
+
+  // Mean (preferred recommendation): rounded average of the captain picks.
+  // This captures the magnitude of disagreement (e.g. mostly T3 with one T5 outlier
+  // still recommends T3, not T5). Ties on .5 round to the tier closer to the current
+  // tier so we don't churn a player just because of a perfectly split vote.
+  let mean = currentTier;
+  if (total > 0) {
+    const raw = sum / total;
+    const lo = Math.floor(raw);
+    const hi = Math.ceil(raw);
+    if (lo === hi) mean = lo;
+    else if (raw - lo > 0.5) mean = hi;
+    else if (raw - lo < 0.5) mean = lo;
+    else {
+      // exact .5 tie — prefer the option closer to current tier
+      mean = Math.abs(lo - currentTier) <= Math.abs(hi - currentTier) ? lo : hi;
+    }
   }
-  if (tied) winner = currentTier;
-  return { counts, winner, total, isChange: winner !== currentTier };
+
+  // Mode (most-common pick): kept for reference / shown to commissioner.
+  let mode = currentTier, max = 0, tied = false;
+  for (let t=1; t<=5; t++){
+    if (counts[t] > max){ max = counts[t]; mode = t; tied = false; }
+    else if (counts[t] === max && t !== mode && max > 0){ tied = true; }
+  }
+  if (tied) mode = currentTier;
+
+  // The "winner" is what the report recommends — use the mean.
+  const winner = mean;
+  return { counts, winner, mean, mode, total, isChange: winner !== currentTier, allRated, rawMean: total > 0 ? sum/total : currentTier };
 }
 
 function allCaptainsSubmitted(){
@@ -1738,6 +1835,8 @@ function renderReport(){
   const noChange = consensus.filter(c => !c.isChange);
   const isCommish = state.isCommish;
   const isFinalized = !!state.finalDecisions;
+  const allFullyRated = changes.every(c => c.allRated);
+  const partialChanges = changes.filter(c => !c.allRated).length;
 
   app.innerHTML = `
     <div class="section" style="margin-top:8px">
@@ -1750,7 +1849,7 @@ function renderReport(){
     ${!ready ? `
       <div class="callout">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <div><strong>Heads up.</strong> Not every captain has submitted yet. This is an interim view. Final consensus locks in once all ${CAPTAINS.length} captains submit.</div>
+        <div><strong>Heads up.</strong> Not every captain has submitted yet. This is an interim view — the consensus and recommendations will update as more ballots come in. Commissioner approvals unlock once all ${CAPTAINS.length} captains have rated each player.</div>
       </div>
     ` : ''}
 
@@ -1758,10 +1857,14 @@ function renderReport(){
       <div class="commish-panel">
         <div style="flex:1">
           <h3>Commissioner review</h3>
-          <p>${isCommish ? 'You\'re authenticated. Approve or reject each proposed change individually, then finalize.' : 'Final decisions are password-protected. Authenticate to approve or reject changes.'}</p>
+          <p>${isCommish 
+              ? (allFullyRated 
+                  ? 'You\'re authenticated. The recommended tier is the rounded average of all captain picks. Approve or reject each proposed change, then finalize.' 
+                  : `You\'re authenticated, but ${partialChanges} proposed change${partialChanges===1?'':'s'} ${partialChanges===1?'is':'are'} still waiting on at least one captain. Those rows stay locked until every captain has weighed in.`)
+              : 'Final decisions are password-protected. Authenticate to approve or reject changes.'}</p>
         </div>
         ${isCommish 
-          ? `<button class="btn primary" id="finalizeBtn">
+          ? `<button class="btn primary" id="finalizeBtn" ${allFullyRated ? '' : 'disabled title="Every proposed change must have ratings from all captains before finalizing"'}>
               Finalize all decisions
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
              </button>` 
@@ -1785,7 +1888,7 @@ function renderReport(){
     <div class="section">
       <div class="section-head">
         <h2>Proposed tier changes</h2>
-        <div class="meta">${changes.length} of ${ROSTER.length} players</div>
+        <div class="meta">${changes.length} of ${ROSTER.length} players · recommendations use the average of captain picks</div>
       </div>
       ${changes.length === 0 ? `
         <div class="change-card no-change"><div class="change-name">No tier changes — captains confirmed all current tiers.</div></div>
@@ -1798,22 +1901,34 @@ function renderReport(){
             const finalDec = state.finalDecisions?.decisions?.[c.player.name];
             const approved = finalDec?.approved === true;
             const rejected = finalDec?.approved === false;
+            const missing = CAPTAINS.length - c.total;
+            const modeDiffers = c.mode !== c.mean && c.mode !== c.player.tier;
             return `
-              <div class="change-card ${approved?'approved':''} ${rejected?'rejected':''}" data-player="${escapeHtml(c.player.name)}">
+              <div class="change-card ${approved?'approved':''} ${rejected?'rejected':''} ${!c.allRated?'partial':''}" data-player="${escapeHtml(c.player.name)}">
                 <div>
                   <div class="change-name">${escapeHtml(c.player.name)}</div>
-                  <div class="change-meta"><span class="team-dot team-${c.player.team}"></span> ${escapeHtml(c.player.team)} · ${c.total} votes</div>
+                  <div class="change-meta">
+                    <span class="team-dot team-${c.player.team}"></span> ${escapeHtml(c.player.team)} ·
+                    ${c.allRated 
+                      ? `<span class="rated-pill rated-full">All ${c.total} rated · avg T${c.rawMean.toFixed(1)}</span>`
+                      : `<span class="rated-pill rated-partial">${c.total}/${CAPTAINS.length} rated · waiting on ${missing}</span>`}
+                    ${modeDiffers && c.allRated ? `<span class="rated-pill" style="background:var(--surface-tint);color:var(--muted)">plurality: T${c.mode}</span>` : ''}
+                  </div>
                 </div>
                 <span class="tier-pill" data-tier="${c.player.tier}">T${c.player.tier}</span>
                 <svg class="arrow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 <span class="tier-pill" data-tier="${c.winner}">T${c.winner}</span>
                 <div class="vote-breakdown" title="T1 / T2 / T3 / T4 / T5 counts">${breakdown}</div>
-                ${isCommish && !isFinalized ? `
-                  <div class="change-actions">
-                    <button class="btn sm danger ${rejected?'':''}" data-action="reject" data-player="${escapeHtml(c.player.name)}">${rejected ? '✕ Rejected' : 'Reject'}</button>
-                    <button class="btn sm success ${approved?'':''}" data-action="approve" data-player="${escapeHtml(c.player.name)}">${approved ? '✓ Approved' : 'Approve'}</button>
-                  </div>
-                ` : '<div></div>'}
+                ${isCommish && !isFinalized ? (
+                  c.allRated
+                    ? `<div class="change-actions">
+                         <button class="btn sm danger" data-action="reject" data-player="${escapeHtml(c.player.name)}">${rejected ? '✕ Rejected' : 'Reject'}</button>
+                         <button class="btn sm success" data-action="approve" data-player="${escapeHtml(c.player.name)}">${approved ? '✓ Approved' : 'Approve'}</button>
+                       </div>`
+                    : `<div class="change-actions">
+                         <button class="btn sm" disabled title="Waiting for all captains to rate this player">Locked</button>
+                       </div>`
+                ) : '<div></div>'}
               </div>
             `;
           }).join('')}
@@ -1857,9 +1972,16 @@ function renderReport(){
   if (authBtn) authBtn.onclick = () => promptCommish(() => { render(); });
 
   document.querySelectorAll('.change-actions button').forEach(btn => {
+    if (btn.disabled) return;
     btn.onclick = () => {
       const player = btn.dataset.player;
       const action = btn.dataset.action;
+      // Safety check: make sure every captain has rated this player.
+      const playerEntry = consensus.find(c => c.player.name === player);
+      if (!playerEntry || !playerEntry.allRated) {
+        toast('All captains must rate this player before it can be approved', 'error');
+        return;
+      }
       if (!state.finalDecisions) state.finalDecisions = { decisions: {}, finalizedAt: null };
       if (!state.finalDecisions.decisions) state.finalDecisions.decisions = {};
       state.finalDecisions.decisions[player] = { approved: action === 'approve' };
@@ -1869,6 +1991,12 @@ function renderReport(){
 
   const finBtn = document.getElementById('finalizeBtn');
   if (finBtn) finBtn.onclick = () => {
+    // Ensure every proposed change has a rating from every captain before finalizing.
+    const stillWaiting = changes.filter(c => !c.allRated);
+    if (stillWaiting.length > 0) {
+      toast(`Cannot finalize — ${stillWaiting.length} player${stillWaiting.length===1?'':'s'} still need ratings from all captains`, 'error');
+      return;
+    }
     const decisions = state.finalDecisions?.decisions || {};
     changes.forEach(c => {
       if (!(c.player.name in decisions)) decisions[c.player.name] = { approved: true };
@@ -1978,9 +2106,88 @@ function renderDashboard(){
       </div>
     </div>
 
-    <div class="callout">
+    <div class="callout how-callout">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-      <div><strong>How suggestions work.</strong> Each player is scored across the nine voted criteria — Shooting, Off-Ball Movement, Shot Selection, Passing, Ball Handling, Rebounding, Defense, Motor/Hustle, and Impact — using Season 3 stats and playing-style tags. Scores are weighted (Impact, Shooting, and Defense most heavily), composited, and percentile-ranked. <em>Captains are locked at T1.</em> Treat suggestions as a starting point — your eyes still win.</div>
+      <div style="flex:1">
+        <details class="how-details">
+          <summary><strong>How suggestions work</strong> — click to expand the full methodology</summary>
+          <div class="how-body">
+
+            <p><strong>The model combines two independent data sources:</strong> Season 3 averages from the scouting report (PPG, RPG, APG, SPG, BPG, FG%, 3P%, FT%, plus the playing-style note) and game-by-game results parsed from all 40 box scores through Week 5 (who led their team in each category, and whether the team won that game).</p>
+
+            <h4>Step 1 · Score each player on 9 criteria (0–100 each)</h4>
+            <p>Every player is scored across the same nine criteria captains use to vote:</p>
+            <ul>
+              <li><strong>Shooting</strong> — weighted blend of FG% × 0.45 + 3P% × 0.35 + FT% × 0.20, scaled by scoring volume</li>
+              <li><strong>Off-Ball Movement</strong> — FG% and 3P% efficiency, with a bonus for low-assist high-efficiency scorers</li>
+              <li><strong>Shot Selection</strong> — FG% plus a 3P efficiency bonus, penalized for high volume on low FG%</li>
+              <li><strong>Passing/Playmaking</strong> — driven by APG</li>
+              <li><strong>Ball Handling</strong> — APG and SPG, with a 20% bump for players tagged as point guards or primary handlers</li>
+              <li><strong>Rebounding</strong> — driven by RPG</li>
+              <li><strong>On-Ball Defense</strong> — SPG and BPG, with a 20% bump for players tagged "defender" / "lock down" / "disrupt"</li>
+              <li><strong>Motor/Hustle</strong> — defensive activity + rebounding, bumped 20% for "hustle" / "grit" / "scrappy" / "active" tags</li>
+              <li><strong>Impact</strong> — composite of all per-game contributions (PPG + RPG + APG + SPG + BPG)</li>
+            </ul>
+
+            <h4>Step 2 · Apply game-results adjustments (this is where wins come in)</h4>
+            <p><strong>Wins are not a standalone category</strong> — but they're heavily used as context. The model checks how each player's individual production correlates with their team actually winning the night. Specifically, the Impact score gets boosted or penalized based on these patterns:</p>
+            <ul>
+              <li><strong>Led team in scoring during 3+ wins</strong> &nbsp;→&nbsp; <span class="boost">+15 Impact</span> &nbsp;<em>(translates volume into team success)</em></li>
+              <li><strong>Led scoring in 1–2 wins</strong> &nbsp;→&nbsp; <span class="boost">+8 Impact</span></li>
+              <li><strong>Versatile across 5+ categories</strong> &nbsp;→&nbsp; <span class="boost">+10 Motor, +5 Impact</span></li>
+              <li><strong>Versatile across 4 categories</strong> &nbsp;→&nbsp; <span class="boost">+5 Motor</span></li>
+              <li><strong>3+ leader appearances, 3+ in wins</strong> &nbsp;→&nbsp; <span class="boost">+5 Impact</span> &nbsp;<em>(rewards role players on winning teams)</em></li>
+              <li><strong>4+ leader appearances, zero in wins</strong> &nbsp;→&nbsp; <span class="penalty">−10 Impact, −5 Motor</span> &nbsp;<em>(box-score padding on losing teams)</em></li>
+              <li><strong>3+ scoring leads, all in losses</strong> &nbsp;→&nbsp; <span class="penalty">−12 Impact, −10 Shot Selection</span> &nbsp;<em>(volume isn't moving the needle)</em></li>
+            </ul>
+            <p><strong>Important nuance:</strong> a player on a losing team isn't automatically penalized. They only take a hit if <em>they personally</em> appeared as a box-score leader without their team winning. A quiet bench player on 0-8 Purple still gets scored purely on their own averages — Purple's record doesn't drag them down. Only players who showed up as category leaders get the wins/losses context applied to them.</p>
+
+            <h4>Step 3 · Weighted composite score</h4>
+            <p>The 9 criteria are combined into one number using these weights (reflecting what most drives winning basketball):</p>
+            <div class="weight-grid">
+              <span class="w-row"><strong>Impact</strong> <span class="w-val">× 1.5</span> <span class="w-label">highest</span></span>
+              <span class="w-row"><strong>Shooting</strong> <span class="w-val">× 1.3</span></span>
+              <span class="w-row"><strong>Defense</strong> <span class="w-val">× 1.2</span></span>
+              <span class="w-row"><strong>Shot Selection</strong> <span class="w-val">× 1.0</span></span>
+              <span class="w-row"><strong>Passing</strong> <span class="w-val">× 1.0</span></span>
+              <span class="w-row"><strong>Rebounding</strong> <span class="w-val">× 1.0</span></span>
+              <span class="w-row"><strong>Motor/Hustle</strong> <span class="w-val">× 1.0</span></span>
+              <span class="w-row"><strong>Ball Handling</strong> <span class="w-val">× 0.8</span></span>
+              <span class="w-row"><strong>Off-Ball Movement</strong> <span class="w-val">× 0.7</span> <span class="w-label">lowest</span></span>
+            </div>
+
+            <h4>Step 4 · Assign tiers by percentile</h4>
+            <p>The 40 non-captain players are ranked by composite score, then bucketed:</p>
+            <ul>
+              <li><strong>Top 25%</strong> (≈10 players) → T2</li>
+              <li><strong>Next 25%</strong> (≈10 players) → T3</li>
+              <li><strong>Next 35%</strong> (≈14 players) → T4</li>
+              <li><strong>Bottom 15%</strong> (≈6 players) → T5</li>
+            </ul>
+            <p>This is <em>relative</em> ranking, not absolute — even if the entire league improved, the same proportions land in each tier. Tiers exist for draft parity, not as skill grades. <strong>Captains are locked at T1</strong> and don't go through this process.</p>
+
+            <h4>Step 5 · Guardrails to prevent unreasonable moves</h4>
+            <ol>
+              <li><strong>No two-tier jumps without strong evidence.</strong> A T4 player can only be moved to T2 if they have 2+ PTS leads in actual wins. Same for demotions in reverse — a T2→T4 move requires 3+ PTS leads with zero wins. Otherwise the move is capped at ±1 tier.</li>
+              <li><strong>Traded players hold their current tier.</strong> Anyone marked "(Traded)" in their scouting notes doesn't get moved, since their stats may reflect a different team context.</li>
+              <li><strong>Single-appearance players can't be demoted.</strong> With only 1 leader appearance, there isn't enough data to call them worse than their captain assigned. They can still be promoted on strong season averages.</li>
+              <li><strong>No big moves without game data.</strong> If a player has zero leader appearances and the model wants to move them 2+ tiers, the move is capped at ±1.</li>
+            </ol>
+
+            <h4>What the model can't see</h4>
+            <ul>
+              <li><strong>Defensive impact beyond steals/blocks</strong> — help defense, communication, positioning, contests don't show up in box scores</li>
+              <li><strong>Chemistry and intangibles</strong> — the model doesn't know who makes their teammates better</li>
+              <li><strong>Strength of opponent</strong> — leading scoring against 0-8 Purple counts the same as leading scoring against 6-2 White</li>
+              <li><strong>Garbage time vs. clutch moments</strong> — a 20-point game in a blowout looks the same as a 20-point game in a tight finish</li>
+              <li><strong>Mid-season trades</strong> — the model can flag traded players but doesn't know who's actively playing where</li>
+            </ul>
+
+            <p style="margin-top:14px"><strong>Bottom line:</strong> the model is a starting point, not an oracle. Every suggestion comes with its underlying reasoning visible in the "Why this suggestion" block — and the criteria bars show exactly what drove the call. Captains should override it freely when their eye test and game tape disagree.</p>
+
+          </div>
+        </details>
+      </div>
     </div>
 
     <div class="dash-filters">
