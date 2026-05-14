@@ -105,6 +105,21 @@
     font-size:11px;color:var(--muted);font-weight:500;line-height:1.2;letter-spacing:0.02em;
   }
   .nav-actions{display:flex;align-items:center;gap:8px}
+  .sync-indicator{
+    display:flex;align-items:center;justify-content:center;
+    width:24px;height:24px;border-radius:50%;
+    margin-left:6px;opacity:0;transition:opacity .25s;
+  }
+  .sync-indicator.on{opacity:1}
+  .sync-dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--primary);
+    animation:sync-pulse 1s ease-in-out infinite;
+  }
+  @keyframes sync-pulse{
+    0%,100%{transform:scale(1);opacity:0.6}
+    50%{transform:scale(1.4);opacity:1}
+  }
   .nav-chip{
     display:inline-flex;align-items:center;gap:8px;
     padding:8px 14px;
@@ -802,6 +817,7 @@
       </div>
     </div>
     <div class="nav-actions" id="navActions"></div>
+    <div class="sync-indicator" id="syncIndicator" title="Syncing with shared database…"><span class="sync-dot"></span></div>
   </header>
 
   <main id="app"></main>
@@ -811,6 +827,22 @@
 <div class="modal-bg" id="modalBg">
   <div class="modal" id="modal"></div>
 </div>
+
+<!-- Firebase SDK (compat build = global `firebase` object, works with classic scripts) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCCUO71OeTUq4H5ypUnhCEIz9_ehVve63g",
+    authDomain: "cirtcuit-5e577.firebaseapp.com",
+    projectId: "cirtcuit-5e577",
+    storageBucket: "cirtcuit-5e577.firebasestorage.app",
+    messagingSenderId: "313775633306",
+    appId: "1:313775633306:web:1dcc48ca2857080cbe4023"
+  };
+  firebase.initializeApp(firebaseConfig);
+  window._db = firebase.firestore();
+</script>
 
 <script>
 /* ============================================================
@@ -1041,19 +1073,79 @@ const SUGGESTIONS = (function(){
 })();
 
 /* ============================================================
-   STORAGE LAYER — shared across all captains
+   STORAGE LAYER — Firestore (shared across all captains, real-time)
+   Documents:  retier/votes  retier/final-decisions
    ============================================================ */
+const db = window._db;
+const docRef = (key) => db.collection('retier').doc(key);
+
+// Track sync state so the UI can show a small indicator
+let _syncing = 0;
+function setSyncing(delta){
+  _syncing = Math.max(0, _syncing + delta);
+  const el = document.getElementById('syncIndicator');
+  if (el) el.classList.toggle('on', _syncing > 0);
+}
+
 async function sGet(key){
-  try { const r = await window.storage.get(key, true); return r ? JSON.parse(r.value) : null; }
-  catch(e){ return null; }
+  setSyncing(1);
+  try {
+    const snap = await docRef(key).get();
+    return snap.exists ? snap.data().value : null;
+  } catch(e){
+    console.error('Firestore get failed:', e);
+    toast('Connection issue — could not load shared data', 'error');
+    return null;
+  } finally {
+    setSyncing(-1);
+  }
 }
+
 async function sSet(key, value){
-  try { await window.storage.set(key, JSON.stringify(value), true); return true; }
-  catch(e){ console.error('storage set failed', e); return false; }
+  setSyncing(1);
+  try {
+    await docRef(key).set({ value, updatedAt: Date.now() });
+    return true;
+  } catch(e){
+    console.error('Firestore set failed:', e);
+    toast('Save failed — please check connection', 'error');
+    return false;
+  } finally {
+    setSyncing(-1);
+  }
 }
+
 async function sDel(key){
-  try { await window.storage.delete(key, true); return true; }
-  catch(e){ return false; }
+  setSyncing(1);
+  try { await docRef(key).delete(); return true; }
+  catch(e){ console.error('Firestore delete failed:', e); return false; }
+  finally { setSyncing(-1); }
+}
+
+// Real-time listeners: keep state in sync when other captains submit/edit.
+// Avoids the user having to refresh to see the roll-call tracker update.
+let _unsubVotes = null, _unsubFinal = null;
+function startRealtimeSync(){
+  if (_unsubVotes) _unsubVotes();
+  if (_unsubFinal) _unsubFinal();
+  _unsubVotes = docRef('votes').onSnapshot(snap => {
+    const incoming = snap.exists ? snap.data().value : {};
+    // Don't clobber the active captain's local in-progress draft.
+    const me = state.currentCaptain;
+    const myDraft = me ? state.votes[me] : null;
+    state.votes = incoming || {};
+    if (me && myDraft && !myDraft.submitted) {
+      // Keep my unsubmitted local edits — remote may have an older submitted/null version.
+      state.votes[me] = myDraft;
+    }
+    // Re-render relevant views so trackers, counts, captain list update live.
+    if (['login','vote','wait','report'].includes(state.view)) render();
+  }, err => console.error('votes listener error:', err));
+
+  _unsubFinal = docRef('final-decisions').onSnapshot(snap => {
+    state.finalDecisions = snap.exists ? snap.data().value : null;
+    if (['login','wait','report','final'].includes(state.view)) render();
+  }, err => console.error('final-decisions listener error:', err));
 }
 
 /* ============================================================
@@ -2028,6 +2120,7 @@ function render(){
 
 (async function init(){
   await loadAll();
+  startRealtimeSync();
   render();
 })();
 </script>
